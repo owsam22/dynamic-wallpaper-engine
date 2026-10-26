@@ -1,0 +1,14 @@
+{
+  "version": 2,
+  "dgSpecHash": "or2DuKI+y/o=",
+  "success": true,
+  "projectFilePath": "C:\\PROGRAMS\\C#\\DynamicDesk\\DynamicDesk\\DynamicDesk.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\22sam\\.nuget\\packages\\microsoft.web.webview2\\1.0.3800.47\\microsoft.web.webview2.1.0.3800.47.nupkg.sha512",
+    "C:\\Users\\22sam\\.nuget\\packages\\microsoft.netcore.app.ref\\9.0.21\\microsoft.netcore.app.ref.9.0.21.nupkg.sha512",
+    "C:\\Users\\22sam\\.nuget\\packages\\microsoft.windowsdesktop.app.ref\\9.0.21\\microsoft.windowsdesktop.app.ref.9.0.21.nupkg.sha512",
+    "C:\\Users\\22sam\\.nuget\\packages\\microsoft.aspnetcore.app.ref\\9.0.21\\microsoft.aspnetcore.app.ref.9.0.21.nupkg.sha512",
+    "C:\\Users\\22sam\\.nuget\\packages\\microsoft.netcore.app.host.win-x64\\9.0.21\\microsoft.netcore.app.host.win-x64.9.0.21.nupkg.sha512"
+  ],
+  "logs": []
+}
