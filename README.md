@@ -1,5 +1,7 @@
 # SmartWallpaperApp — Windows 11 Power-Based Live Wallpaper Application
 
+>currently building this project, don't install it now , there will be many bugs and errors
+
 A native Windows 11 desktop application that automatically transitions between a dynamic, responsive HTML/web live wallpaper (when connected to AC power) and an energy-efficient static image wallpaper (when operating on battery power).
 
 Built with **C# (.NET 9)**, **Windows Forms**, **Microsoft Edge WebView2**, and **Win32 Shell APIs**.
