@@ -1,145 +1,159 @@
-# SmartWallpaperApp — Windows 11 Power-Based Live Wallpaper Application
+# DynamicDesk
 
->currently building this project, don't install it now , there will be many bugs and errors
+<p align="center">
+  <strong>A power-aware wallpaper experience for Windows.</strong>
+  <br />
+  Switch between live HTML wallpapers and static backgrounds based on your PC's power state.
+  <br /><br />
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest">
+    <img src="https://img.shields.io/github/v/release/owsam22/dynamic-wallpaper-engine?style=for-the-badge&label=Latest%20Release" alt="Latest Release" />
+  </a>
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases">
+</a>
+</p>
 
-A native Windows 11 desktop application that automatically transitions between a dynamic, responsive HTML/web live wallpaper (when connected to AC power) and an energy-efficient static image wallpaper (when operating on battery power).
-
-Built with **C# (.NET 9)**, **Windows Forms**, **Microsoft Edge WebView2**, and **Win32 Shell APIs**.
+<p align="center">
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest"><strong>⬇ Download for Windows</strong></a>
+  &nbsp; · &nbsp;
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/issues">Report a Bug</a>
+  &nbsp; · &nbsp;
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases">All Releases</a>
+</p>
 
 ---
 
-## 1. Application Objective & Core Behavior
+> [!WARNING]
+> **Early development:** DynamicDesk is experimental software. Some features may be incomplete or unstable. Check the release notes before installing.
 
-- **AC Power Connected:** Displays a configurable live wallpaper rendered via Microsoft Edge WebView2 (supporting local HTML5/CSS3/Canvas/WebGL animations and remote `https://` websites).
-- **Battery Power:** Stops all live rendering, disposes and frees WebView2 GPU/CPU resources, and applies a user-selected static wallpaper using the native Windows wallpaper subsystem.
-- **Power Changes:** Automatically switches modes without user intervention, debouncing rapid events and executing serialized state transitions.
-- **Application Startup:** Detects current hardware power status and applies the correct wallpaper immediately.
-- **Unknown Power State Fallback:** Safely treats unknown power status as on-battery / static mode to prevent unintended battery depletion.
-- **Desktop Shell Integration:** Live wallpaper is embedded behind desktop icons via the Windows 11 `WorkerW` / `Progman` desktop hierarchy.
+## Overview
 
----
+DynamicDesk is a Windows desktop application designed to adapt your wallpaper experience to your computer's power state.
 
-## 2. Architecture & Component Structure
+The goal is simple: enjoy a live HTML wallpaper while connected to power and switch to a static wallpaper when running on battery.
 
+### Features
+
+- **Power-aware switching** — designed to change wallpaper modes based on AC power and battery status.
+- **Live HTML wallpapers** — render web-based wallpapers using Microsoft Edge WebView2.
+- **Static wallpapers** — use image-based backgrounds in the battery mode.
+- **System tray integration** — access the application from the Windows notification area.
+- **Settings interface** — configure available application options.
+- **Native Windows application** — built with C# and Windows Forms.
+
+*Features and behavior may vary by release. See the current release notes for the latest implementation status.*
+
+## Download and Install
+
+**The easiest way to get started is to download the latest release.**
+
+<p align="center">
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest">
+    <img src="https://img.shields.io/badge/Download-DynamicDesk%20for%20Windows-2ea44f?style=for-the-badge&logo=windows" alt="Download DynamicDesk for Windows" />
+  </a>
+</p>
+
+1. Open the [Latest Release](https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest).
+2. Download `DynamicDesk-win-x64.zip` from the **Assets** section.
+3. Extract the ZIP file.
+4. Run the included DynamicDesk executable.
+5. Install the Microsoft Edge WebView2 Runtime if required.
+
+### System Requirements
+
+- Compatible 64-bit Windows system.
+- Microsoft Edge WebView2 Runtime for HTML wallpaper rendering.
+- No Visual Studio installation is needed to run a correctly packaged release.
+- The packaged release may include the .NET runtime, depending on how it was published.
+
+If Windows displays a security warning, verify that the download came from this repository and review the release before proceeding.
+
+## How It Works
+
+DynamicDesk is designed around two wallpaper modes:
+
+| Power source | Intended wallpaper mode |
+|---|---|
+| AC power connected | Live HTML wallpaper |
+| Battery power | Static wallpaper |
+
+The application monitors power-state changes and uses them to determine the appropriate wallpaper mode. Actual behavior depends on the features implemented in the installed release.
+
+## Built With
+
+| Technology | Purpose |
+|---|---|
+| C# | Application logic |
+| .NET | Application framework |
+| Windows Forms | Desktop interface |
+| Microsoft Edge WebView2 | HTML wallpaper rendering |
+| Windows APIs | Operating-system integration |
+
+## Run from Source
+
+Want to explore or contribute to the code?
+
+### Prerequisites
+
+- Git
+- .NET SDK compatible with the project's target framework
+- A compatible Windows development environment
+- WebView2 Runtime for testing HTML wallpaper rendering
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/owsam22/dynamic-wallpaper-engine.git
+cd dynamic-wallpaper-engine
 ```
-DynamicDesk/
-├── Core/
-│   ├── WinApiHelpers.cs            # Native Win32 interop, WorkerW desktop embedding, wallpaper registry
-│   ├── PowerMonitor.cs             # Power detection (SystemInformation, WM_POWERBROADCAST, debouncing)
-│   └── FullscreenDetector.cs       # Automatic detection of foreground fullscreen apps (games/media)
-├── Models/
-│   └── AppSettings.cs              # Strongly typed settings model
-├── Services/
-│   ├── SettingsManager.cs          # JSON settings persistence & Windows startup registration
-│   ├── StaticWallpaperManager.cs   # SystemParametersInfo SPI_SETDESKWALLPAPER coordinator
-│   ├── WebWallpaperEngine.cs       # WebView2 lifecycle, virtual host mapping, HTML/Video support, suspension
-│   └── WallpaperManager.cs         # Central state machine & thread-safe transition coordinator
-├── UI/
-│   ├── WallpaperHostForm.cs        # Borderless, non-activating window embedded into desktop layer
-│   ├── SettingsForm.cs             # Full settings and real-time diagnostic control panel
-│   └── MainForm.cs                 # System-tray application host, message receiver, lifecycle coordinator
-├── Utils/
-│   └── Logger.cs                   # Rolling thread-safe file logger (%LocalAppData%\SmartWallpaperApp\Logs)
-├── Program.cs                      # Entry point, single-instance mutex, global exception handling
-├── app.manifest                    # PerMonitorV2 DPI awareness & Windows 11 compatibility
-├── DynamicDesk.csproj              # .NET 9 Windows Forms project with WebView2
-└── README.md
-```
 
----
+### Restore Dependencies
 
-## 3. Desktop Embedding: WorkerW Technique
-
-In Windows 11, the desktop background and desktop icons are managed by Windows Explorer (`explorer.exe`):
-1. **Progman (`Program Manager`):** The primary shell window.
-2. **`SHELLDLL_DefView` & `SysListView32`:** Contain desktop icons and user interactions.
-3. **`WorkerW` Layering:**
-   - Sending `0x052C` (`WM_SPAWN_WORKER`) to `Progman` causes Explorer to fork its window structure into two `WorkerW` layers.
-   - The top layer hosts `SHELLDLL_DefView` (desktop icons).
-   - The sibling layer directly behind it is the target `WorkerW`.
-   - `SmartWallpaperApp` embeds the live host window (`WallpaperHostForm`) as a child of this sibling `WorkerW` using `SetParent`.
-   - The window is styled with `WS_CHILD`, `WS_CLIPCHILDREN`, `WS_CLIPSIBLINGS`, and `WS_EX_NOACTIVATE` / `WS_EX_TOOLWINDOW` so it never steals focus, does not appear in Alt+Tab, and leaves desktop icons fully clickable and functional.
-4. **Fallback Mechanism:** If the host process is running outside the interactive shell station or if `WorkerW` is unavailable, `SmartWallpaperApp` safely layers the host window to `HWND_BOTTOM` behind all regular windows without covering the taskbar or desktop icons.
-
----
-
-## 4. Live Wallpaper Support (Local HTML & Remote Websites)
-
-- **Local HTML Files:**
-  - Bundled example: `Assets/example_wallpaper.html` contains an animated particle constellation and radiant wave matrix with zero external dependencies.
-  - Virtual host mapping: `CoreWebView2.SetVirtualHostNameToFolderMapping("wallpaper-local", folder, ...)` allows local HTML files to load local CSS, JavaScript modules, and images without CORS issues.
-- **Remote Websites:**
-  - Validates `http://` and `https://` URLs.
-  - Enforces certificate security.
-  - Automatic scrollbar and margin suppression script injected on document creation.
-- **Resource Management:**
-  - When switching to battery mode, the live engine and WebView2 runtime resources are completely disposed.
-  - When running on AC and a fullscreen game or media player is detected, WebView2 is suspended via `TrySuspendAsync()` to save GPU and CPU resources.
-
----
-
-## 5. Configuration & Persistence
-
-All application settings are stored in JSON format at:
-```
-%AppData%\SmartWallpaperApp\settings.json
-```
-
-### Configuration Options:
-- `LiveSourceType`: `"LocalHtml"` or `"WebsiteUrl"`.
-- `LiveSourcePath`: File path or web URL.
-- `StaticImagePath`: Path to static image (`.jpg`, `.jpeg`, `.png`, `.bmp`).
-- `StaticWallpaperStyle`: `"Fill"`, `"Fit"`, `"Stretch"`, `"Tile"`, `"Center"`, or `"Span"`.
-- `AutoSwitchEnabled`: `true` to enable automatic switching.
-- `PollingIntervalSeconds`: Fallback polling period (default: `10`s).
-- `PauseOnFullscreen`: Suspend WebView2 rendering during fullscreen applications.
-- `PauseBelowBatteryPercent`: Switch to static mode if battery is below threshold (e.g. `20%`).
-- `SimulationMode`: `"Actual"`, `"SimulatedAC"`, or `"SimulatedBattery"`.
-- `SimulatedBatteryPercent`: Custom battery % for simulation testing.
-- `StartWithWindows`: Toggles registry entry in `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`.
-
----
-
-## 6. Power Simulation & Testing Mode
-
-Testing power switching on desktop PCs or laptops plugged into power docks is fully supported:
-1. Open **Settings** (or right-click the system tray icon > **Simulation Override**).
-2. Choose:
-   - **Actual:** Uses real Windows battery and AC power status.
-   - **Simulated AC:** Forces AC Connected state.
-   - **Simulated Battery:** Forces On Battery state with configurable percentage.
-3. The application immediately reacts and transitions wallpapers accordingly, allowing thorough end-to-end verification.
-
----
-
-## 7. Diagnostics & Logging
-
-Persistent rolling logs are written to:
-```
-%LocalAppData%\SmartWallpaperApp\Logs\app-YYYYMMDD.log
-```
-Logs include timestamped records of power changes, state transitions, WebView2 initialization status, native Win32 API calls, display changes, and exceptions. Logs older than 7 days are automatically purged.
-
----
-
-## 8. Build & Execution
-
-### Prerequisites:
-- Windows 10 (1809+) or Windows 11.
-- .NET 9.0 SDK or .NET 10.0 SDK.
-- Microsoft Edge WebView2 Runtime (pre-installed on Windows 11).
-
-### Build Solution:
 ```bash
 dotnet restore
+```
+
+### Build the Project
+
+```bash
 dotnet build -c Release
 ```
 
-### Run Application:
+### Run the Application
+
 ```bash
 dotnet run
-# OR execute directly:
-.\bin\Release\net9.0-windows\SmartWallpaperApp.exe
 ```
 
-The application runs in the **Windows system tray**. Double-click the tray icon to open the Settings & Control Panel.
+Run these commands from the directory containing `DynamicDesk.csproj`. The installed .NET SDK must support the framework declared in that file.
+
+## Project Status
+
+DynamicDesk is an actively developing project. The initial release provides a starting point for testing the application and gathering feedback.
+
+Planned improvements may include more reliable wallpaper transitions, better configuration, improved error handling, and a smoother user experience.
+
+These are development goals, not promises that every feature is already implemented.
+
+## Report Issues
+
+Found a bug or have an idea?
+
+- [Report a bug](https://github.com/owsam22/dynamic-wallpaper-engine/issues/new)
+- [Browse existing issues](https://github.com/owsam22/dynamic-wallpaper-engine/issues)
+- [View releases](https://github.com/owsam22/dynamic-wallpaper-engine/releases)
+
+When reporting a bug, include your Windows version, steps to reproduce it, and any relevant error messages.
+
+## License
+
+See the repository's `LICENSE` file for the applicable terms. If no license file is present, the source code should not be assumed to be open for unrestricted reuse or redistribution.
+
+---
+
+<p align="center">
+  <strong>DynamicDesk</strong>
+  <br />
+  Built by <a href="https://github.com/owsam22">owsam22</a>
+  <br />
+  <sub>Making the desktop adapt to the way you use your PC.</sub>
+</p>
