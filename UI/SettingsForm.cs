@@ -501,12 +501,12 @@ namespace SmartWallpaperApp.UI
             {
                 _powerMonitor.UpdateSettings(_settingsManager.CurrentSettings);
                 await _wallpaperManager.ForceApplyCurrentPowerModeAsync();
-                MessageBox.Show(this, "Your wallpaper settings have been saved and applied.", "Smart Wallpaper", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Your wallpaper settings have been saved and applied.", "Smart Wallpaper", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Close();
             }
             else
             {
-                MessageBox.Show(this, "Failed to save settings. Check logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("Failed to save settings. Check logs for details.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -519,7 +519,15 @@ namespace SmartWallpaperApp.UI
             _lblStatusMode.Text = $"{_wallpaperManager.CurrentMode} {(_wallpaperManager.IsAutomationPaused ? "(Automation Paused)" : "")}";
 
             string src = _settingsManager.CurrentSettings.LiveSourcePath;
-            _lblStatusSource.Text = string.IsNullOrWhiteSpace(src) ? "(No live wallpaper selected)" : Path.GetFileName(src);
+            if (string.IsNullOrWhiteSpace(src))
+            {
+                _lblStatusSource.Text = "(No live wallpaper selected)";
+            }
+            else
+            {
+                string display = Path.GetFileName(src);
+                _lblStatusSource.Text = string.IsNullOrEmpty(display) ? src : display;
+            }
 
             WebWallpaperEngine.IsWebView2RuntimeAvailable(out string wv2Status);
             _lblStatusWebView2.Text = wv2Status;

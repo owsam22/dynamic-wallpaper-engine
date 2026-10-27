@@ -138,120 +138,158 @@ namespace SmartWallpaperApp.Core
         [DllImport("user32.dll", SetLastError = true)]
         public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
+        [DllImport("user32.dll")]
+        public static extern bool IsWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("user32.dll")]
+        public static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr WindowFromPoint(POINT Point);
+
+        [DllImport("user32.dll")]
+        public static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+
+        [DllImport("user32.dll", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+        [DllImport("user32.dll")]
+        public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+        [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetModuleHandle(string? lpModuleName);
+
+        public delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT
+        {
+            public int X;
+            public int Y;
+        }
+
+        [StructLayout(LayoutKind.Sequential)]
+        public struct MSLLHOOKSTRUCT
+        {
+            public POINT pt;
+            public uint mouseData;
+            public uint flags;
+            public uint time;
+            public IntPtr dwExtraInfo;
+        }
+
+        public static IntPtr GetInnermostWindow(IntPtr parentHwnd)
+        {
+            IntPtr result = parentHwnd;
+            EnumChildWindows(parentHwnd, (child, _) =>
+            {
+                var sb = new StringBuilder(256);
+                GetClassName(child, sb, sb.Capacity);
+                string cls = sb.ToString();
+                if (cls.Contains("RenderWidgetHostHWND") || cls.Contains("Chrome_WidgetWin"))
+                {
+                    result = child;
+                    return false;
+                }
+                return true;
+            }, IntPtr.Zero);
+            return result;
+        }
+
         #endregion
 
-        #region Desktop WorkerW Integration
-
-        /// <summary>
-        /// Locates or triggers creation of the WorkerW window immediately behind desktop icons.
-        /// NEVER returns Progman as reparenting into Progman freezes Explorer and corrupts desktop rendering.
-        /// </summary>
-        public static IntPtr GetDesktopWorkerW()
-        {
-            IntPtr progman = FindWindow("Progman", null);
-            if (progman == IntPtr.Zero)
-            {
-                Logger.Warn("Progman window not found.");
-                return IntPtr.Zero;
-            }
-
-            // Message 0x052C instructs Progman to spawn WorkerW behind SHELLDLL_DefView.
-            // 0x0002 is SMTO_ABORTIFHUNG to prevent any UI freezing.
-            SendMessageTimeout(progman, WM_SPAWN_WORKER, IntPtr.Zero, IntPtr.Zero, 0x0002, 1000, out _);
-            SendMessageTimeout(progman, WM_SPAWN_WORKER, new IntPtr(0xD), new IntPtr(0x1), 0x0002, 1000, out _);
-
-            IntPtr workerW = IntPtr.Zero;
-
-            // Search for WorkerW window
-            for (int attempt = 0; attempt < 8; attempt++)
-            {
-                // Method 1: WorkerW sibling immediately behind the window containing SHELLDLL_DefView
-                EnumWindows((topHandle, _) =>
-                {
-                    IntPtr shellView = FindWindowEx(topHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
-                    if (shellView != IntPtr.Zero)
-                    {
-                        IntPtr candidate = FindWindowEx(IntPtr.Zero, topHandle, "WorkerW", null);
-                        if (candidate != IntPtr.Zero)
-                        {
-                            workerW = candidate;
-                            return false; // Found! Stop enumeration
-                        }
-                    }
-                    return true;
-                }, IntPtr.Zero);
-
-                if (workerW != IntPtr.Zero)
-                {
-                    Logger.Info($"Found Desktop WorkerW via sibling Z-order: 0x{workerW.ToInt64():X}");
-                    return workerW;
-                }
-
-                // Method 2: On some Windows 11 builds, find any top-level WorkerW that does not contain SHELLDLL_DefView
-                EnumWindows((topHandle, _) =>
-                {
-                    var sb = new StringBuilder(256);
-                    GetClassName(topHandle, sb, sb.Capacity);
-                    if (sb.ToString() == "WorkerW")
-                    {
-                        IntPtr shellView = FindWindowEx(topHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
-                        if (shellView == IntPtr.Zero)
-                        {
-                            workerW = topHandle;
-                            return false; // Found worker window
-                        }
-                    }
-                    return true;
-                }, IntPtr.Zero);
-
-                if (workerW != IntPtr.Zero)
-                {
-                    Logger.Info($"Found Desktop WorkerW via class search: 0x{workerW.ToInt64():X}");
-                    return workerW;
-                }
-
-                // Retry spawning message if not yet ready
-                SendMessageTimeout(progman, WM_SPAWN_WORKER, IntPtr.Zero, IntPtr.Zero, 0x0002, 500, out _);
-                Thread.Sleep(60);
-            }
-
-            Logger.Warn("Could not locate desktop WorkerW; will layer to HWND_BOTTOM without SetParent.");
-            return IntPtr.Zero;
-        }
+        #region Desktop Shell Integration
 
         private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
 
         /// <summary>
         /// Embeds a Form's HWND into the desktop layer behind icons.
-        /// If WorkerW is unavailable, safely layers to HWND_BOTTOM without reparenting.
+        /// Handles both Windows 11 (Progman + SHELLDLL_DefView Z-order) and Windows 10 (WorkerW sibling).
         /// </summary>
         public static bool EmbedWindowToDesktop(IntPtr childHwnd, Rectangle bounds)
         {
             try
             {
-                IntPtr desktopHost = GetDesktopWorkerW();
+                IntPtr progman = FindWindow("Progman", null);
+                if (progman == IntPtr.Zero)
+                {
+                    Logger.Warn("Progman window not found.");
+                    return false;
+                }
 
-                // Make sure window has child/popup style and no borders
+                // Send 0x052C to Progman to initialize WorkerW structure
+                SendMessageTimeout(progman, WM_SPAWN_WORKER, IntPtr.Zero, IntPtr.Zero, 0x0002, 1000, out _);
+
+                // Prepare window style: child, visible, no caption, no borders
                 long style = GetWindowLongPtr(childHwnd, GWL_STYLE).ToInt64();
                 style &= ~(WS_CAPTION | WS_THICKFRAME | WS_SYSMENU);
+                style |= (WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
+                SetWindowLongPtr(childHwnd, GWL_STYLE, new IntPtr(style));
 
-                // Make sure extended styles do not show in Alt+Tab and do not steal focus
+                // ToolWindow style prevents appearance in Alt+Tab; allow clicks so wallpaper is interactive
                 long exStyle = GetWindowLongPtr(childHwnd, GWL_EXSTYLE).ToInt64();
-                exStyle |= (WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE);
+                exStyle |= WS_EX_TOOLWINDOW;
                 exStyle &= ~WS_EX_TOPMOST;
+                exStyle &= ~WS_EX_NOACTIVATE;
                 SetWindowLongPtr(childHwnd, GWL_EXSTYLE, new IntPtr(exStyle));
 
-                if (desktopHost != IntPtr.Zero)
+                // Check Case 1: Windows 11 (23H2/24H2) where SHELLDLL_DefView resides inside Progman
+                IntPtr shellViewInProgman = FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null);
+                if (shellViewInProgman != IntPtr.Zero)
                 {
-                    style |= (WS_CHILD | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE);
-                    SetWindowLongPtr(childHwnd, GWL_STYLE, new IntPtr(style));
+                    Logger.Info($"SHELLDLL_DefView is inside Progman (0x{progman.ToInt64():X}). Embedding behind desktop icons.");
 
-                    IntPtr prevParent = SetParent(childHwnd, desktopHost);
-                    int setParentError = Marshal.GetLastWin32Error();
-                    if (prevParent == IntPtr.Zero && setParentError != 0)
+                    // Add WS_CLIPCHILDREN to Progman so it does not draw over the wallpaper
+                    long progStyle = GetWindowLongPtr(progman, GWL_STYLE).ToInt64();
+                    progStyle |= WS_CLIPCHILDREN;
+                    SetWindowLongPtr(progman, GWL_STYLE, new IntPtr(progStyle));
+
+                    SetParent(childHwnd, progman);
+
+                    // Position childHwnd directly behind shellViewInProgman
+                    SetWindowPos(
+                        childHwnd,
+                        shellViewInProgman,
+                        bounds.X,
+                        bounds.Y,
+                        bounds.Width,
+                        bounds.Height,
+                        SWP_SHOWWINDOW | SWP_FRAMECHANGED
+                    );
+
+                    ShowWindow(childHwnd, SW_SHOW);
+                    ShowWindow(progman, SW_SHOW);
+                    Logger.Info($"Successfully embedded HWND 0x{childHwnd.ToInt64():X} behind SHELLDLL_DefView inside Progman.");
+                    return true;
+                }
+
+                // Check Case 2: Windows 10 / earlier Windows 11 where SHELLDLL_DefView is in a WorkerW
+                IntPtr targetWorkerW = IntPtr.Zero;
+                EnumWindows((topHandle, _) =>
+                {
+                    IntPtr defView = FindWindowEx(topHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
+                    if (defView != IntPtr.Zero)
                     {
-                        Logger.Warn($"SetParent reported win32 error code {setParentError}.");
+                        targetWorkerW = FindWindowEx(IntPtr.Zero, topHandle, "WorkerW", null);
+                        if (targetWorkerW != IntPtr.Zero)
+                        {
+                            return false; // Found sibling
+                        }
                     }
+                    return true;
+                }, IntPtr.Zero);
+
+                if (targetWorkerW != IntPtr.Zero)
+                {
+                    ShowWindow(targetWorkerW, SW_SHOW);
+                    SetParent(childHwnd, targetWorkerW);
 
                     SetWindowPos(
                         childHwnd,
@@ -260,33 +298,32 @@ namespace SmartWallpaperApp.Core
                         bounds.Y,
                         bounds.Width,
                         bounds.Height,
-                        SWP_NOZORDER | SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_FRAMECHANGED
+                        SWP_NOZORDER | SWP_SHOWWINDOW | SWP_FRAMECHANGED
                     );
 
                     ShowWindow(childHwnd, SW_SHOW);
-                    Logger.Info($"Embedded HWND 0x{childHwnd.ToInt64():X} to Desktop WorkerW 0x{desktopHost.ToInt64():X} at {bounds}.");
+                    Logger.Info($"Successfully embedded HWND 0x{childHwnd.ToInt64():X} into WorkerW 0x{targetWorkerW.ToInt64():X}.");
                     return true;
                 }
-                else
-                {
-                    // Fallback: Layer to HWND_BOTTOM behind all normal applications without reparenting
-                    Logger.Info("Layering host window to HWND_BOTTOM.");
-                    style |= WS_VISIBLE;
-                    SetWindowLongPtr(childHwnd, GWL_STYLE, new IntPtr(style));
 
-                    SetWindowPos(
-                        childHwnd,
-                        HWND_BOTTOM,
-                        bounds.X,
-                        bounds.Y,
-                        bounds.Width,
-                        bounds.Height,
-                        SWP_NOACTIVATE | SWP_SHOWWINDOW | SWP_FRAMECHANGED
-                    );
+                // Check Case 3: Fallback layer to HWND_BOTTOM
+                Logger.Info("Fallback: Layering host window to HWND_BOTTOM.");
+                style |= WS_VISIBLE;
+                style &= ~WS_CHILD;
+                SetWindowLongPtr(childHwnd, GWL_STYLE, new IntPtr(style));
 
-                    ShowWindow(childHwnd, SW_SHOW);
-                    return true;
-                }
+                SetWindowPos(
+                    childHwnd,
+                    HWND_BOTTOM,
+                    bounds.X,
+                    bounds.Y,
+                    bounds.Width,
+                    bounds.Height,
+                    SWP_SHOWWINDOW | SWP_FRAMECHANGED
+                );
+
+                ShowWindow(childHwnd, SW_SHOW);
+                return true;
             }
             catch (Exception ex)
             {

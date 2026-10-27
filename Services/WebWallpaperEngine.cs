@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
+using SmartWallpaperApp.Core;
 using SmartWallpaperApp.UI;
 using SmartWallpaperApp.Utils;
 
@@ -15,6 +16,7 @@ namespace SmartWallpaperApp.Services
         private string? _currentLoadedSource;
         private bool _isSuspended;
         private readonly string _userDataFolder;
+        private readonly DesktopInputForwarder _inputForwarder = new();
 
         public bool IsRunning => _hostForm != null && !_hostForm.IsDisposed && _hostForm.Visible;
         public string? CurrentSource => _currentLoadedSource;
@@ -96,6 +98,10 @@ namespace SmartWallpaperApp.Services
                     {
                         Logger.Warn("WebWallpaperEngine: Initial desktop embedding failed. Layered to bottom.");
                     }
+
+                    // Start input forwarder AFTER embedding so the render HWND is ready
+                    _inputForwarder.Stop();
+                    _inputForwarder.Start(_hostForm);
 
                     _currentLoadedSource = sourcePath;
                     InitializationStatus = "Running";
@@ -265,6 +271,7 @@ namespace SmartWallpaperApp.Services
             {
                 try
                 {
+                    _inputForwarder.Stop();
                     await _hostForm.WebView.CoreWebView2.TrySuspendAsync();
                     _isSuspended = true;
                     Logger.Info("WebWallpaperEngine suspended (paused rendering).");
@@ -286,6 +293,7 @@ namespace SmartWallpaperApp.Services
                 {
                     _hostForm.WebView.CoreWebView2.Resume();
                     _isSuspended = false;
+                    _inputForwarder.Start(_hostForm);
                     Logger.Info("WebWallpaperEngine resumed.");
                 }
                 catch (Exception ex)
@@ -300,6 +308,7 @@ namespace SmartWallpaperApp.Services
             _currentLoadedSource = null;
             InitializationStatus = "Stopped";
             _isSuspended = false;
+            _inputForwarder.Stop();
 
             if (_hostForm != null)
             {
@@ -336,6 +345,7 @@ namespace SmartWallpaperApp.Services
         public void Dispose()
         {
             Stop();
+            _inputForwarder.Dispose();
         }
     }
 }

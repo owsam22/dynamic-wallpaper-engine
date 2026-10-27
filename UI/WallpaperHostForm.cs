@@ -41,19 +41,14 @@ namespace SmartWallpaperApp.UI
             {
                 var cp = base.CreateParams;
                 cp.ExStyle |= WinApiHelpers.WS_EX_TOOLWINDOW;
-                cp.ExStyle |= WinApiHelpers.WS_EX_NOACTIVATE;
+                // WS_CLIPCHILDREN prevents the form from painting over the WebView2 control
+                cp.Style |= WinApiHelpers.WS_CLIPCHILDREN;
                 return cp;
             }
         }
 
         protected override void WndProc(ref Message m)
         {
-            if (m.Msg == WinApiHelpers.WM_MOUSEACTIVATE)
-            {
-                m.Result = (IntPtr)WinApiHelpers.MA_NOACTIVATE;
-                return;
-            }
-
             base.WndProc(ref m);
         }
 
