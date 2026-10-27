@@ -38,7 +38,9 @@ Built with C#, .NET, Windows Forms, and Microsoft Edge WebView2, DynamicDesk com
 - **Settings interface** — configure the application's available options.
 - **Native Windows application** — built with C# and Windows Forms.
 - **WebView2 rendering** — use Microsoft Edge WebView2 for HTML wallpaper content.
-
+ 
+ >note : live url wallpaper need internet connection to display. and the wallpaper will be display only when the application is running. when the application is closed, the wallpaper will be closed too.
+ 
 ## Download and Install
 
 Get the latest Windows build directly from GitHub Releases.
