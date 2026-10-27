@@ -91,6 +91,16 @@ With power-aware switching enabled, DynamicDesk is designed to use the live wall
 
 When a live HTML wallpaper supports interaction, use your mouse to interact with its content. The exact interaction behavior depends on the wallpaper and the application's current implementation.
 
+<p align="center">
+  <a href="https://owsam22.github.io/pixel-engineer-live-wallpaper/" target="_blank">
+    <strong>Open Pixel Engineer Live Wallpaper ↗</strong>
+  </a>
+</p>
+
+<p align="center">
+  <code>https://owsam22.github.io/pixel-engineer-live-wallpaper/</code>
+</p>
+
 ## System Requirements
 
 - A compatible 64-bit Windows system.
