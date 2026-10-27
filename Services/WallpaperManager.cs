@@ -118,15 +118,22 @@ namespace SmartWallpaperApp.Services
         {
             var settings = _settingsManager.CurrentSettings;
 
-            if (!await _transitionLock.WaitAsync(200))
-            {
-                Logger.Warn("TransitionToLiveAsync: Another transition is already in progress. Skipping.");
-                return;
-            }
+            // Wait for any previous transition to cleanly finish without dropping events
+            await _transitionLock.WaitAsync();
 
             try
             {
-                if (!force && _currentMode == WallpaperMode.Live &&
+                if (!settings.HasLiveWallpaper)
+                {
+                    _currentMode = WallpaperMode.Unknown;
+                    LastTransitionMessage = "No live wallpaper selected. Open Settings to select one.";
+                    LastTransitionTime = DateTime.Now;
+                    Logger.Info(LastTransitionMessage);
+                    StateChanged?.Invoke(_currentMode, LastTransitionMessage);
+                    return;
+                }
+
+                if (!force && _currentMode == WallpaperMode.Live && _liveEngine.IsRunning &&
                     string.Equals(_liveEngine.CurrentSource, settings.LiveSourcePath, StringComparison.OrdinalIgnoreCase))
                 {
                     Logger.Debug("Already in Live mode with current source. No transition needed.");
@@ -143,20 +150,28 @@ namespace SmartWallpaperApp.Services
                 if (success)
                 {
                     _currentMode = WallpaperMode.Live;
-                    LastTransitionMessage = $"Live mode active ({settings.LiveSourceType})";
+                    LastTransitionMessage = $"Live mode active ({Path.GetFileName(settings.LiveSourcePath)})";
                     LastTransitionTime = DateTime.Now;
                     Logger.Info(LastTransitionMessage);
                 }
                 else
                 {
-                    Logger.Warn("Failed to initialize Live Wallpaper. Falling back to configured static wallpaper.");
+                    Logger.Warn("Failed to initialize Live Wallpaper. Falling back to configured static wallpaper if available.");
                     _liveEngine.Stop();
 
-                    bool fallbackSuccess = _staticManager.ApplyWallpaper(settings.StaticImagePath, settings.StaticWallpaperStyle, force: true);
-                    _currentMode = WallpaperMode.Static;
-                    LastTransitionMessage = fallbackSuccess
-                        ? "Live wallpaper failed; fallback static wallpaper active"
-                        : "Live and static wallpaper fallback both failed";
+                    if (settings.HasStaticWallpaper)
+                    {
+                        bool fallbackSuccess = _staticManager.ApplyWallpaper(settings.StaticImagePath, settings.StaticWallpaperStyle, force: true);
+                        _currentMode = WallpaperMode.Static;
+                        LastTransitionMessage = fallbackSuccess
+                            ? "Live wallpaper failed; fallback static wallpaper active"
+                            : "Live wallpaper failed; static fallback also failed";
+                    }
+                    else
+                    {
+                        _currentMode = WallpaperMode.Unknown;
+                        LastTransitionMessage = "Live wallpaper failed to start and no static wallpaper is configured.";
+                    }
                     LastTransitionTime = DateTime.Now;
                 }
 
@@ -165,7 +180,7 @@ namespace SmartWallpaperApp.Services
             catch (Exception ex)
             {
                 Logger.Error("Exception during TransitionToLiveAsync", ex);
-                _currentMode = WallpaperMode.Static;
+                _currentMode = WallpaperMode.Unknown;
                 LastTransitionMessage = $"Error: {ex.Message}";
                 StateChanged?.Invoke(_currentMode, LastTransitionMessage);
             }
@@ -179,30 +194,31 @@ namespace SmartWallpaperApp.Services
         {
             var settings = _settingsManager.CurrentSettings;
 
-            if (!await _transitionLock.WaitAsync(200))
-            {
-                Logger.Warn("TransitionToStaticAsync: Another transition is already in progress. Skipping.");
-                return;
-            }
+            // Wait for any previous transition to cleanly finish without dropping events
+            await _transitionLock.WaitAsync();
 
             try
             {
-                if (!force && _currentMode == WallpaperMode.Static && !_liveEngine.IsRunning)
-                {
-                    Logger.Debug("Already in Static mode. No transition needed.");
-                    return;
-                }
-
                 _currentMode = WallpaperMode.TransitioningToStatic;
                 StateChanged?.Invoke(_currentMode, "Switching to Static Wallpaper...");
 
                 Logger.Info("Stopping Live Wallpaper engine and releasing resources...");
                 _liveEngine.Stop();
 
+                if (!settings.HasStaticWallpaper)
+                {
+                    _currentMode = WallpaperMode.Static;
+                    LastTransitionMessage = "No static wallpaper selected. Open Settings to select one.";
+                    LastTransitionTime = DateTime.Now;
+                    Logger.Info(LastTransitionMessage);
+                    StateChanged?.Invoke(_currentMode, LastTransitionMessage);
+                    return;
+                }
+
                 bool success = _staticManager.ApplyWallpaper(settings.StaticImagePath, settings.StaticWallpaperStyle, force);
 
                 _currentMode = WallpaperMode.Static;
-                LastTransitionMessage = success ? "Static mode active" : "Static wallpaper application failed";
+                LastTransitionMessage = success ? $"Static mode active ({Path.GetFileName(settings.StaticImagePath)})" : "Static wallpaper application failed";
                 LastTransitionTime = DateTime.Now;
                 Logger.Info(LastTransitionMessage);
 
@@ -225,7 +241,7 @@ namespace SmartWallpaperApp.Services
         {
             if (!_settingsManager.CurrentSettings.PauseOnFullscreen) return;
 
-            if (_currentMode == WallpaperMode.Live)
+            if (_currentMode == WallpaperMode.Live && _liveEngine.IsRunning)
             {
                 if (isFullscreen)
                 {

@@ -71,8 +71,27 @@ namespace SmartWallpaperApp.UI
             _fullscreenDetector.Start();
             _powerMonitor.Start();
 
-            // Perform initial mode transition
-            await _wallpaperManager.HandlePowerChangeAsync(_powerMonitor.CurrentStatus, force: true);
+            var settings = _settingsManager.CurrentSettings;
+            if (!settings.HasLiveWallpaper && !settings.HasStaticWallpaper)
+            {
+                Logger.Info("No wallpapers configured on startup. Presenting Settings window to user.");
+                ShowSettings();
+                try
+                {
+                    _trayIcon.ShowBalloonTip(
+                        3500,
+                        "Smart Wallpaper App",
+                        "Welcome! Please select your custom live and static wallpapers to get started.",
+                        ToolTipIcon.Info
+                    );
+                }
+                catch { }
+            }
+            else
+            {
+                // Perform initial mode transition
+                await _wallpaperManager.HandlePowerChangeAsync(_powerMonitor.CurrentStatus, force: true);
+            }
         }
 
         private void InitializeTray()
@@ -140,11 +159,23 @@ namespace SmartWallpaperApp.UI
                 return;
             }
 
+            var settings = _settingsManager.CurrentSettings;
             string pwr = status?.StatusSummary ?? "Detecting...";
-            string header = $"Mode: {mode} | {pwr}";
-            _menuStatusHeader.Text = header;
+            string header;
+            string tooltip;
 
-            string tooltip = $"Smart Wallpaper [{mode}]\n{pwr}";
+            if (!settings.HasLiveWallpaper && !settings.HasStaticWallpaper)
+            {
+                header = $"⚠️ Setup: Select Wallpapers in Settings | {pwr}";
+                tooltip = $"Smart Wallpaper [Setup Needed]\nPlease select wallpapers in Settings\n{pwr}";
+            }
+            else
+            {
+                header = $"Mode: {mode} | {pwr}";
+                tooltip = $"Smart Wallpaper [{mode}]\n{pwr}";
+            }
+
+            _menuStatusHeader.Text = header;
             if (tooltip.Length > 63) tooltip = tooltip.Substring(0, 60) + "...";
             _trayIcon.Text = tooltip;
         }

@@ -71,13 +71,6 @@ namespace SmartWallpaperApp.Services
                 Stop();
 
                 _hostForm = new WallpaperHostForm();
-                _hostForm.Show();
-
-                bool embedded = _hostForm.AttachToDesktop();
-                if (!embedded)
-                {
-                    Logger.Warn("WebWallpaperEngine: Initial desktop embedding failed. Continuing initialization.");
-                }
 
                 if (_environment == null)
                 {
@@ -89,6 +82,7 @@ namespace SmartWallpaperApp.Services
                     );
                 }
 
+                // Initialize WebView2 before embedding into desktop to prevent message pump deadlocks
                 await _hostForm.WebView.EnsureCoreWebView2Async(_environment);
 
                 ConfigureWebViewSettings(_hostForm.WebView.CoreWebView2);
@@ -96,6 +90,13 @@ namespace SmartWallpaperApp.Services
                 bool navigated = await NavigateAsync(_hostForm.WebView.CoreWebView2, sourceType, sourcePath);
                 if (navigated)
                 {
+                    _hostForm.Show();
+                    bool embedded = _hostForm.AttachToDesktop();
+                    if (!embedded)
+                    {
+                        Logger.Warn("WebWallpaperEngine: Initial desktop embedding failed. Layered to bottom.");
+                    }
+
                     _currentLoadedSource = sourcePath;
                     InitializationStatus = "Running";
                     _isSuspended = false;
@@ -127,17 +128,18 @@ namespace SmartWallpaperApp.Services
                 return false;
             }
 
-            if (sourceType.Equals("LocalHtml", StringComparison.OrdinalIgnoreCase))
+            if (!sourceType.Equals("WebsiteUrl", StringComparison.OrdinalIgnoreCase))
             {
                 if (!File.Exists(sourcePath))
                 {
-                    error = $"Local HTML file does not exist: {sourcePath}";
+                    error = $"Local live wallpaper file does not exist: {sourcePath}";
                     return false;
                 }
                 string ext = Path.GetExtension(sourcePath).ToLowerInvariant();
-                if (ext != ".html" && ext != ".htm")
+                string[] validExts = { ".html", ".htm", ".mp4", ".webm", ".mov", ".mkv" };
+                if (Array.IndexOf(validExts, ext) < 0)
                 {
-                    error = $"File is not an HTML document: {sourcePath}";
+                    error = $"Unsupported file extension '{ext}'. Please select an HTML or video file (.html, .htm, .mp4, .webm).";
                     return false;
                 }
             }
@@ -196,10 +198,11 @@ namespace SmartWallpaperApp.Services
 
             try
             {
-                if (sourceType.Equals("LocalHtml", StringComparison.OrdinalIgnoreCase))
+                if (!sourceType.Equals("WebsiteUrl", StringComparison.OrdinalIgnoreCase))
                 {
                     string folder = Path.GetDirectoryName(sourcePath) ?? "";
                     string fileName = Path.GetFileName(sourcePath);
+                    string ext = Path.GetExtension(sourcePath).ToLowerInvariant();
 
                     core.SetVirtualHostNameToFolderMapping(
                         "wallpaper-local",
@@ -207,7 +210,37 @@ namespace SmartWallpaperApp.Services
                         CoreWebView2HostResourceAccessKind.Allow
                     );
 
-                    core.Navigate($"https://wallpaper-local/{Uri.EscapeDataString(fileName)}");
+                    if (ext == ".mp4" || ext == ".webm" || ext == ".mov" || ext == ".mkv")
+                    {
+                        string mime = ext switch
+                        {
+                            ".webm" => "video/webm",
+                            ".mov" => "video/quicktime",
+                            ".mkv" => "video/x-matroska",
+                            _ => "video/mp4"
+                        };
+                        string videoSrc = $"https://wallpaper-local/{Uri.EscapeDataString(fileName)}";
+                        string videoHtml = $@"<!DOCTYPE html>
+<html>
+<head>
+<meta charset=""utf-8"">
+<style>
+  * {{ margin: 0; padding: 0; overflow: hidden; background: #000; }}
+  video {{ width: 100vw; height: 100vh; object-fit: cover; position: fixed; top: 0; left: 0; }}
+</style>
+</head>
+<body>
+  <video autoplay loop muted playsinline>
+    <source src=""{videoSrc}"" type=""{mime}"">
+  </video>
+</body>
+</html>";
+                        core.NavigateToString(videoHtml);
+                    }
+                    else
+                    {
+                        core.Navigate($"https://wallpaper-local/{Uri.EscapeDataString(fileName)}");
+                    }
                 }
                 else
                 {
@@ -226,7 +259,9 @@ namespace SmartWallpaperApp.Services
 
         public async void Suspend()
         {
-            if (_hostForm?.WebView?.CoreWebView2 != null && !_isSuspended)
+            if (_hostForm != null && !_hostForm.IsDisposed &&
+                _hostForm.WebView != null && !_hostForm.WebView.IsDisposed &&
+                _hostForm.WebView.CoreWebView2 != null && !_isSuspended)
             {
                 try
                 {
@@ -243,7 +278,9 @@ namespace SmartWallpaperApp.Services
 
         public void Resume()
         {
-            if (_hostForm?.WebView?.CoreWebView2 != null && _isSuspended)
+            if (_hostForm != null && !_hostForm.IsDisposed &&
+                _hostForm.WebView != null && !_hostForm.WebView.IsDisposed &&
+                _hostForm.WebView.CoreWebView2 != null && _isSuspended)
             {
                 try
                 {

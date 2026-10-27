@@ -92,20 +92,20 @@ namespace SmartWallpaperApp.Services
 
         private void ValidateAndApplyDefaults()
         {
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            string defaultHtml = Path.Combine(baseDir, "Assets", "example_wallpaper.html");
-            string defaultImg = Path.Combine(baseDir, "Assets", "default_wallpaper.png");
-
-            if (string.IsNullOrWhiteSpace(CurrentSettings.LiveSourcePath) ||
-                (CurrentSettings.LiveSourceType == "LocalHtml" && !File.Exists(CurrentSettings.LiveSourcePath)))
+            // If paths do not exist, reset to empty so the user is prompted to select their own files
+            if (!string.IsNullOrWhiteSpace(CurrentSettings.LiveSourcePath) &&
+                CurrentSettings.LiveSourceType != "WebsiteUrl" &&
+                !File.Exists(CurrentSettings.LiveSourcePath))
             {
-                CurrentSettings.LiveSourceType = "LocalHtml";
-                CurrentSettings.LiveSourcePath = File.Exists(defaultHtml) ? defaultHtml : "";
+                Logger.Warn($"Configured live wallpaper path does not exist: {CurrentSettings.LiveSourcePath}. Resetting to empty.");
+                CurrentSettings.LiveSourcePath = string.Empty;
             }
 
-            if (string.IsNullOrWhiteSpace(CurrentSettings.StaticImagePath) || !File.Exists(CurrentSettings.StaticImagePath))
+            if (!string.IsNullOrWhiteSpace(CurrentSettings.StaticImagePath) &&
+                !File.Exists(CurrentSettings.StaticImagePath))
             {
-                CurrentSettings.StaticImagePath = File.Exists(defaultImg) ? defaultImg : "";
+                Logger.Warn($"Configured static wallpaper path does not exist: {CurrentSettings.StaticImagePath}. Resetting to empty.");
+                CurrentSettings.StaticImagePath = string.Empty;
             }
 
             if (CurrentSettings.PollingIntervalSeconds < 1)

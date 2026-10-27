@@ -15,6 +15,8 @@ namespace SmartWallpaperApp.UI
         private readonly WallpaperManager _wallpaperManager;
         private readonly PowerMonitor _powerMonitor;
 
+        private Panel _pnlSetupBanner = null!;
+
         // UI Controls - Static Wallpaper
         private TextBox _txtStaticPath = null!;
         private Button _btnBrowseStatic = null!;
@@ -85,15 +87,36 @@ namespace SmartWallpaperApp.UI
             {
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
-                RowCount = 5,
+                RowCount = 6,
                 Padding = new Padding(16),
                 AutoScroll = true
             };
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Setup Notice
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Live Wallpaper
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Static Wallpaper
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Automation & Simulation
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Live Diagnostic Status
             mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize)); // Buttons
+
+            // --- 0. Setup Banner ---
+            _pnlSetupBanner = new Panel
+            {
+                Dock = DockStyle.Top,
+                BackColor = Color.FromArgb(235, 245, 255),
+                Padding = new Padding(12),
+                Margin = new Padding(0, 0, 0, 12),
+                AutoSize = true,
+                Visible = false
+            };
+            var lblBanner = new Label
+            {
+                Text = "💡 First-Time Setup: There are no in-built default wallpapers. Please select your own custom Live and Static wallpaper files below to enable dynamic switching.",
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
+                ForeColor = Color.FromArgb(0, 90, 180),
+                AutoSize = true,
+                Dock = DockStyle.Fill
+            };
+            _pnlSetupBanner.Controls.Add(lblBanner);
 
             // --- 1. Live Wallpaper GroupBox ---
             var grpLive = new GroupBox
@@ -110,7 +133,7 @@ namespace SmartWallpaperApp.UI
             liveLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90f));
 
             var pnlRadio = new FlowLayoutPanel { Dock = DockStyle.Top, AutoSize = true };
-            _rbLocalHtml = new RadioButton { Text = "Local HTML File", AutoSize = true, Checked = true, Font = new Font("Segoe UI", 9f) };
+            _rbLocalHtml = new RadioButton { Text = "Local File (HTML or Video .mp4/.webm)", AutoSize = true, Checked = true, Font = new Font("Segoe UI", 9f) };
             _rbWebsiteUrl = new RadioButton { Text = "Remote Website URL (http/https)", AutoSize = true, Font = new Font("Segoe UI", 9f) };
             _rbLocalHtml.CheckedChanged += OnLiveSourceTypeChanged;
             _rbWebsiteUrl.CheckedChanged += OnLiveSourceTypeChanged;
@@ -283,11 +306,12 @@ namespace SmartWallpaperApp.UI
 
             pnlBottom.Controls.AddRange(new Control[] { _btnCancel, _btnSave });
 
-            mainLayout.Controls.Add(grpLive, 0, 0);
-            mainLayout.Controls.Add(grpStatic, 0, 1);
-            mainLayout.Controls.Add(grpAuto, 0, 2);
-            mainLayout.Controls.Add(grpStatus, 0, 3);
-            mainLayout.Controls.Add(pnlBottom, 0, 4);
+            mainLayout.Controls.Add(_pnlSetupBanner, 0, 0);
+            mainLayout.Controls.Add(grpLive, 0, 1);
+            mainLayout.Controls.Add(grpStatic, 0, 2);
+            mainLayout.Controls.Add(grpAuto, 0, 3);
+            mainLayout.Controls.Add(grpStatus, 0, 4);
+            mainLayout.Controls.Add(pnlBottom, 0, 5);
 
             Controls.Add(mainLayout);
         }
@@ -308,6 +332,8 @@ namespace SmartWallpaperApp.UI
         private void LoadSettingsToUI()
         {
             var s = _settingsManager.CurrentSettings;
+
+            _pnlSetupBanner.Visible = !s.HasLiveWallpaper || !s.HasStaticWallpaper;
 
             if (s.LiveSourceType == "WebsiteUrl")
             {
@@ -346,11 +372,20 @@ namespace SmartWallpaperApp.UI
 
         private void OnBrowseLiveClick(object? sender, EventArgs e)
         {
+            string initDir = !string.IsNullOrWhiteSpace(_txtLivePath.Text) && Directory.Exists(Path.GetDirectoryName(_txtLivePath.Text))
+                ? Path.GetDirectoryName(_txtLivePath.Text)!
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyVideos);
+
+            if (!Directory.Exists(initDir))
+            {
+                initDir = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+            }
+
             using var dlg = new OpenFileDialog
             {
-                Title = "Select HTML Wallpaper",
-                Filter = "HTML Files (*.html;*.htm)|*.html;*.htm|All Files (*.*)|*.*",
-                InitialDirectory = AppDomain.CurrentDomain.BaseDirectory
+                Title = "Select Custom Live Wallpaper (HTML or Video)",
+                Filter = "All Supported Live Wallpapers (*.html;*.htm;*.mp4;*.webm)|*.html;*.htm;*.mp4;*.webm|HTML Files (*.html;*.htm)|*.html;*.htm|Video Files (*.mp4;*.webm)|*.mp4;*.webm|All Files (*.*)|*.*",
+                InitialDirectory = initDir
             };
 
             if (dlg.ShowDialog(this) == DialogResult.OK)
@@ -361,11 +396,15 @@ namespace SmartWallpaperApp.UI
 
         private void OnBrowseStaticClick(object? sender, EventArgs e)
         {
+            string initDir = !string.IsNullOrWhiteSpace(_txtStaticPath.Text) && Directory.Exists(Path.GetDirectoryName(_txtStaticPath.Text))
+                ? Path.GetDirectoryName(_txtStaticPath.Text)!
+                : Environment.GetFolderPath(Environment.SpecialFolder.MyPictures);
+
             using var dlg = new OpenFileDialog
             {
-                Title = "Select Static Image Wallpaper",
+                Title = "Select Custom Static Wallpaper (Image)",
                 Filter = "Image Files (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|All Files (*.*)|*.*",
-                InitialDirectory = AppDomain.CurrentDomain.BaseDirectory
+                InitialDirectory = initDir
             };
 
             if (dlg.ShowDialog(this) == DialogResult.OK)
@@ -379,7 +418,7 @@ namespace SmartWallpaperApp.UI
             string source = _txtLivePath.Text.Trim();
             if (string.IsNullOrEmpty(source))
             {
-                MessageBox.Show(this, "Please enter a valid website URL or select a local HTML file.", "Input Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, "Please enter a valid website URL or select a local HTML / Video file.", "Input Required", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -395,7 +434,7 @@ namespace SmartWallpaperApp.UI
                 return;
             }
 
-            // Launch a test preview window using system default browser or WebView2
+            // Launch a test preview window using system default browser or player
             try
             {
                 var uri = _rbLocalHtml.Checked ? new Uri(Path.GetFullPath(source)).AbsoluteUri : source;
@@ -425,11 +464,28 @@ namespace SmartWallpaperApp.UI
 
         private async void OnSaveClick(object? sender, EventArgs e)
         {
+            string livePath = _txtLivePath.Text.Trim();
+            string staticPath = _txtStaticPath.Text.Trim();
+
+            // Validate live file if specified
+            if (_rbLocalHtml.Checked && !string.IsNullOrWhiteSpace(livePath) && !File.Exists(livePath))
+            {
+                MessageBox.Show(this, $"The selected live wallpaper file does not exist:\n{livePath}", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            // Validate static file if specified
+            if (!string.IsNullOrWhiteSpace(staticPath) && !File.Exists(staticPath))
+            {
+                MessageBox.Show(this, $"The selected static wallpaper file does not exist:\n{staticPath}", "Validation Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
             var updated = new AppSettings
             {
-                LiveSourceType = _rbLocalHtml.Checked ? "LocalHtml" : "WebsiteUrl",
-                LiveSourcePath = _txtLivePath.Text.Trim(),
-                StaticImagePath = _txtStaticPath.Text.Trim(),
+                LiveSourceType = _rbLocalHtml.Checked ? "LocalFile" : "WebsiteUrl",
+                LiveSourcePath = livePath,
+                StaticImagePath = staticPath,
                 StaticWallpaperStyle = _cmbStaticStyle.SelectedItem?.ToString() ?? "Fill",
                 AutoSwitchEnabled = _chkAutoSwitch.Checked,
                 StartWithWindows = _chkStartWithWindows.Checked,
@@ -445,7 +501,7 @@ namespace SmartWallpaperApp.UI
             {
                 _powerMonitor.UpdateSettings(_settingsManager.CurrentSettings);
                 await _wallpaperManager.ForceApplyCurrentPowerModeAsync();
-                MessageBox.Show(this, "Settings have been saved and applied successfully.", "Smart Wallpaper", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(this, "Your wallpaper settings have been saved and applied.", "Smart Wallpaper", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Close();
             }
             else
@@ -461,7 +517,9 @@ namespace SmartWallpaperApp.UI
             _lblStatusPower.ForeColor = (pStatus != null && pStatus.IsAcConnected) ? Color.DarkGreen : Color.FromArgb(180, 80, 0);
 
             _lblStatusMode.Text = $"{_wallpaperManager.CurrentMode} {(_wallpaperManager.IsAutomationPaused ? "(Automation Paused)" : "")}";
-            _lblStatusSource.Text = _settingsManager.CurrentSettings.LiveSourcePath;
+
+            string src = _settingsManager.CurrentSettings.LiveSourcePath;
+            _lblStatusSource.Text = string.IsNullOrWhiteSpace(src) ? "(No live wallpaper selected)" : Path.GetFileName(src);
 
             WebWallpaperEngine.IsWebView2RuntimeAvailable(out string wv2Status);
             _lblStatusWebView2.Text = wv2Status;

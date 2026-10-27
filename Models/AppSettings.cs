@@ -7,7 +7,7 @@ namespace SmartWallpaperApp.Models
         public string StaticImagePath { get; set; } = string.Empty;
         public string StaticWallpaperStyle { get; set; } = "Fill";
 
-        public string LiveSourceType { get; set; } = "LocalHtml"; // "LocalHtml" or "WebsiteUrl"
+        public string LiveSourceType { get; set; } = "LocalFile"; // "LocalFile", "LocalHtml", or "WebsiteUrl"
         public string LiveSourcePath { get; set; } = string.Empty;
 
         public bool AutoSwitchEnabled { get; set; } = true;
@@ -19,5 +19,9 @@ namespace SmartWallpaperApp.Models
         public int SimulatedBatteryPercent { get; set; } = 85;
 
         public bool StartWithWindows { get; set; } = false;
+
+        public bool HasStaticWallpaper => !string.IsNullOrWhiteSpace(StaticImagePath) && System.IO.File.Exists(StaticImagePath);
+        public bool HasLiveWallpaper => !string.IsNullOrWhiteSpace(LiveSourcePath) &&
+            (LiveSourceType == "WebsiteUrl" || System.IO.File.Exists(LiveSourcePath));
     }
 }

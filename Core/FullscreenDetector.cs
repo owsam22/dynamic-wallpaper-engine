@@ -47,7 +47,11 @@ namespace SmartWallpaperApp.Core
                 IntPtr desktopHwnd = WinApiHelpers.GetDesktopWindow();
                 if (fgHwnd == shellHwnd || fgHwnd == desktopHwnd) return false;
 
-                // Check class name to ignore taskbars and desktop shell
+                // Ignore our own application windows (SettingsForm, etc.)
+                WinApiHelpers.GetWindowThreadProcessId(fgHwnd, out uint pid);
+                if (pid == (uint)Environment.ProcessId) return false;
+
+                // Check class name to ignore taskbars, desktop shell, and system elements
                 var classNameBuilder = new StringBuilder(256);
                 WinApiHelpers.GetClassName(fgHwnd, classNameBuilder, classNameBuilder.Capacity);
                 string className = classNameBuilder.ToString();
@@ -55,7 +59,10 @@ namespace SmartWallpaperApp.Core
                 if (className == "Progman" ||
                     className == "WorkerW" ||
                     className == "Shell_TrayWnd" ||
-                    className == "Shell_SecondaryTrayWnd")
+                    className == "Shell_SecondaryTrayWnd" ||
+                    className == "Windows.UI.Core.CoreWindow" ||
+                    className == "XamlExplorerHostIslandWindow" ||
+                    className == "DV2ControlHost")
                 {
                     return false;
                 }

@@ -23,9 +23,6 @@ Built with **C# (.NET 9)**, **Windows Forms**, **Microsoft Edge WebView2**, and 
 
 ```
 DynamicDesk/
-├── Assets/
-│   ├── example_wallpaper.html      # Responsive HTML5 canvas wave/particle animated wallpaper (offline)
-│   └── default_wallpaper.png       # High-resolution default static wallpaper image
 ├── Core/
 │   ├── WinApiHelpers.cs            # Native Win32 interop, WorkerW desktop embedding, wallpaper registry
 │   ├── PowerMonitor.cs             # Power detection (SystemInformation, WM_POWERBROADCAST, debouncing)
@@ -35,7 +32,7 @@ DynamicDesk/
 ├── Services/
 │   ├── SettingsManager.cs          # JSON settings persistence & Windows startup registration
 │   ├── StaticWallpaperManager.cs   # SystemParametersInfo SPI_SETDESKWALLPAPER coordinator
-│   ├── WebWallpaperEngine.cs       # WebView2 lifecycle, virtual host mapping, suspension
+│   ├── WebWallpaperEngine.cs       # WebView2 lifecycle, virtual host mapping, HTML/Video support, suspension
 │   └── WallpaperManager.cs         # Central state machine & thread-safe transition coordinator
 ├── UI/
 │   ├── WallpaperHostForm.cs        # Borderless, non-activating window embedded into desktop layer

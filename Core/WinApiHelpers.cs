@@ -135,12 +135,16 @@ namespace SmartWallpaperApp.Core
             public int Height => Bottom - Top;
         }
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
         #endregion
 
         #region Desktop WorkerW Integration
 
         /// <summary>
-        /// Locates or triggers creation of the WorkerW window immediately behind SHELLDLL_DefView.
+        /// Locates or triggers creation of the WorkerW window immediately behind desktop icons.
+        /// NEVER returns Progman as reparenting into Progman freezes Explorer and corrupts desktop rendering.
         /// </summary>
         public static IntPtr GetDesktopWorkerW()
         {
@@ -151,53 +155,75 @@ namespace SmartWallpaperApp.Core
                 return IntPtr.Zero;
             }
 
-            // Message 0x052C instructs Progman to spawn WorkerW windows
-            // Send twice with slight delay as Windows 11 Explorer sometimes requires initial initialization
-            SendMessageTimeout(progman, WM_SPAWN_WORKER, new IntPtr(0xD), new IntPtr(0x1), 0, 1000, out _);
+            // Message 0x052C instructs Progman to spawn WorkerW behind SHELLDLL_DefView.
+            // 0x0002 is SMTO_ABORTIFHUNG to prevent any UI freezing.
+            SendMessageTimeout(progman, WM_SPAWN_WORKER, IntPtr.Zero, IntPtr.Zero, 0x0002, 1000, out _);
+            SendMessageTimeout(progman, WM_SPAWN_WORKER, new IntPtr(0xD), new IntPtr(0x1), 0x0002, 1000, out _);
 
             IntPtr workerW = IntPtr.Zero;
 
-            // Search for WorkerW sibling of SHELLDLL_DefView with retries
-            for (int attempt = 0; attempt < 5; attempt++)
+            // Search for WorkerW window
+            for (int attempt = 0; attempt < 8; attempt++)
             {
+                // Method 1: WorkerW sibling immediately behind the window containing SHELLDLL_DefView
                 EnumWindows((topHandle, _) =>
                 {
                     IntPtr shellView = FindWindowEx(topHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
                     if (shellView != IntPtr.Zero)
                     {
-                        // The WorkerW directly behind SHELLDLL_DefView is the next sibling
-                        workerW = FindWindowEx(IntPtr.Zero, topHandle, "WorkerW", null);
-                        return false; // Stop enumeration
+                        IntPtr candidate = FindWindowEx(IntPtr.Zero, topHandle, "WorkerW", null);
+                        if (candidate != IntPtr.Zero)
+                        {
+                            workerW = candidate;
+                            return false; // Found! Stop enumeration
+                        }
                     }
                     return true;
                 }, IntPtr.Zero);
 
                 if (workerW != IntPtr.Zero)
                 {
-                    Logger.Info($"Found Desktop WorkerW: 0x{workerW.ToInt64():X}");
+                    Logger.Info($"Found Desktop WorkerW via sibling Z-order: 0x{workerW.ToInt64():X}");
                     return workerW;
                 }
 
-                Thread.Sleep(100);
+                // Method 2: On some Windows 11 builds, find any top-level WorkerW that does not contain SHELLDLL_DefView
+                EnumWindows((topHandle, _) =>
+                {
+                    var sb = new StringBuilder(256);
+                    GetClassName(topHandle, sb, sb.Capacity);
+                    if (sb.ToString() == "WorkerW")
+                    {
+                        IntPtr shellView = FindWindowEx(topHandle, IntPtr.Zero, "SHELLDLL_DefView", null);
+                        if (shellView == IntPtr.Zero)
+                        {
+                            workerW = topHandle;
+                            return false; // Found worker window
+                        }
+                    }
+                    return true;
+                }, IntPtr.Zero);
+
+                if (workerW != IntPtr.Zero)
+                {
+                    Logger.Info($"Found Desktop WorkerW via class search: 0x{workerW.ToInt64():X}");
+                    return workerW;
+                }
+
+                // Retry spawning message if not yet ready
+                SendMessageTimeout(progman, WM_SPAWN_WORKER, IntPtr.Zero, IntPtr.Zero, 0x0002, 500, out _);
+                Thread.Sleep(60);
             }
 
-            // Fallback: If no sibling WorkerW was found, check if Progman directly contains SHELLDLL_DefView
-            IntPtr progmanDefView = FindWindowEx(progman, IntPtr.Zero, "SHELLDLL_DefView", null);
-            if (progmanDefView != IntPtr.Zero)
-            {
-                Logger.Warn("SHELLDLL_DefView is inside Progman. Using Progman as fallback desktop parent.");
-                return progman;
-            }
-
-            Logger.Warn("Could not identify specific WorkerW behind desktop icons; falling back to Progman.");
-            return progman;
+            Logger.Warn("Could not locate desktop WorkerW; will layer to HWND_BOTTOM without SetParent.");
+            return IntPtr.Zero;
         }
 
         private static readonly IntPtr HWND_BOTTOM = new IntPtr(1);
 
         /// <summary>
         /// Embeds a Form's HWND into the desktop layer behind icons.
-        /// If WorkerW is unavailable, safely layers to HWND_BOTTOM.
+        /// If WorkerW is unavailable, safely layers to HWND_BOTTOM without reparenting.
         /// </summary>
         public static bool EmbedWindowToDesktop(IntPtr childHwnd, Rectangle bounds)
         {
@@ -243,8 +269,8 @@ namespace SmartWallpaperApp.Core
                 }
                 else
                 {
-                    // Fallback when Explorer desktop shell is absent (e.g. non-default desktop or lock screen)
-                    Logger.Warn("WorkerW/Progman not available on current desktop. Layering window to HWND_BOTTOM behind all normal applications.");
+                    // Fallback: Layer to HWND_BOTTOM behind all normal applications without reparenting
+                    Logger.Info("Layering host window to HWND_BOTTOM.");
                     style |= WS_VISIBLE;
                     SetWindowLongPtr(childHwnd, GWL_STYLE, new IntPtr(style));
 
@@ -259,7 +285,7 @@ namespace SmartWallpaperApp.Core
                     );
 
                     ShowWindow(childHwnd, SW_SHOW);
-                    return false;
+                    return true;
                 }
             }
             catch (Exception ex)
