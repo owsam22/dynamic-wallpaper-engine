@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Threading;
 
-namespace SmartWallpaperApp.Utils
+namespace DynamicDesk.Utils
 {
     public static class Logger
     {
@@ -14,7 +14,7 @@ namespace SmartWallpaperApp.Utils
             try
             {
                 string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-                LogDirectory = Path.Combine(localAppData, "SmartWallpaperApp", "Logs");
+                LogDirectory = Path.Combine(localAppData, "DynamicDesk", "Logs");
                 Directory.CreateDirectory(LogDirectory);
                 CleanOldLogs();
             }

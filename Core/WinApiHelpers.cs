@@ -4,9 +4,9 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using Microsoft.Win32;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Core
+namespace DynamicDesk.Core
 {
     public static class WinApiHelpers
     {
@@ -144,6 +144,9 @@ namespace SmartWallpaperApp.Core
         [DllImport("user32.dll", SetLastError = true)]
         public static extern bool PostMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
+        [DllImport("user32.dll", SetLastError = true)]
+        public static extern IntPtr SendMessage(IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+
         [DllImport("user32.dll")]
         public static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
@@ -152,6 +155,9 @@ namespace SmartWallpaperApp.Core
 
         [DllImport("user32.dll")]
         public static extern bool EnumChildWindows(IntPtr hWndParent, EnumWindowsProc lpEnumFunc, IntPtr lParam);
+
+        [DllImport("user32.dll", ExactSpelling = true)]
+        public static extern IntPtr GetParent(IntPtr hWnd);
 
         [DllImport("user32.dll", SetLastError = true)]
         public static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
@@ -185,23 +191,67 @@ namespace SmartWallpaperApp.Core
             public IntPtr dwExtraInfo;
         }
 
-        public static IntPtr GetInnermostWindow(IntPtr parentHwnd)
+        /// <summary>
+        /// Recursively searches for the actual Chromium rendering surface window (Chrome_RenderWidgetHostHWND).
+        /// Chromium ignores mouse messages posted to parent container windows like Chrome_WidgetWin_0.
+        /// They must be sent directly to Chrome_RenderWidgetHostHWND.
+        /// </summary>
+        public static IntPtr FindRenderWidgetHostHwnd(IntPtr parentHwnd)
         {
-            IntPtr result = parentHwnd;
+            if (parentHwnd == IntPtr.Zero || !IsWindow(parentHwnd)) return IntPtr.Zero;
+
+            IntPtr found = IntPtr.Zero;
+
+            // Pass 1: Look specifically for Chrome_RenderWidgetHostHWND
             EnumChildWindows(parentHwnd, (child, _) =>
             {
                 var sb = new StringBuilder(256);
                 GetClassName(child, sb, sb.Capacity);
                 string cls = sb.ToString();
-                if (cls.Contains("RenderWidgetHostHWND") || cls.Contains("Chrome_WidgetWin"))
+                if (cls == "Chrome_RenderWidgetHostHWND")
                 {
-                    result = child;
+                    found = child;
+                    return false; // Found exact render widget! Stop search.
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            if (found != IntPtr.Zero) return found;
+
+            // Pass 2: Fallback to any child containing RenderWidgetHostHWND
+            EnumChildWindows(parentHwnd, (child, _) =>
+            {
+                var sb = new StringBuilder(256);
+                GetClassName(child, sb, sb.Capacity);
+                string cls = sb.ToString();
+                if (cls.Contains("RenderWidgetHostHWND"))
+                {
+                    found = child;
                     return false;
                 }
                 return true;
             }, IntPtr.Zero);
-            return result;
+
+            if (found != IntPtr.Zero) return found;
+
+            // Pass 3: Fallback to Chrome_WidgetWin
+            EnumChildWindows(parentHwnd, (child, _) =>
+            {
+                var sb = new StringBuilder(256);
+                GetClassName(child, sb, sb.Capacity);
+                string cls = sb.ToString();
+                if (cls.StartsWith("Chrome_WidgetWin"))
+                {
+                    found = child;
+                    return false;
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            return found != IntPtr.Zero ? found : parentHwnd;
         }
+
+        public static IntPtr GetInnermostWindow(IntPtr parentHwnd) => FindRenderWidgetHostHwnd(parentHwnd);
 
         #endregion
 

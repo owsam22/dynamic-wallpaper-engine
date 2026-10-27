@@ -2,22 +2,22 @@ using System;
 using System.IO;
 using System.Text.Json;
 using Microsoft.Win32;
-using SmartWallpaperApp.Models;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Models;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Services
+namespace DynamicDesk.Services
 {
     public class SettingsManager
     {
         private static readonly string SettingsFolder;
         private static readonly string SettingsFilePath;
         private const string StartupRegistryKey = @"Software\Microsoft\Windows\CurrentVersion\Run";
-        private const string AppRegistryName = "SmartWallpaperApp";
+        private const string AppRegistryName = "DynamicDesk";
 
         static SettingsManager()
         {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-            SettingsFolder = Path.Combine(appData, "SmartWallpaperApp");
+            SettingsFolder = Path.Combine(appData, "DynamicDesk");
             SettingsFilePath = Path.Combine(SettingsFolder, "settings.json");
         }
 

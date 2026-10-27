@@ -1,10 +1,10 @@
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
-using SmartWallpaperApp.Core;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Core;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Services
+namespace DynamicDesk.Services
 {
     public class StaticWallpaperManager
     {

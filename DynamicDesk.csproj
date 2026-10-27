@@ -6,8 +6,8 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <AssemblyName>SmartWallpaperApp</AssemblyName>
-    <RootNamespace>SmartWallpaperApp</RootNamespace>
+    <AssemblyName>DynamicDesk</AssemblyName>
+    <RootNamespace>DynamicDesk</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>$(NoWarn);MSB3277</NoWarn>
   </PropertyGroup>

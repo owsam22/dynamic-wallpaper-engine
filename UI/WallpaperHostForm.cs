@@ -2,10 +2,10 @@ using System;
 using System.Drawing;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.WinForms;
-using SmartWallpaperApp.Core;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Core;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.UI
+namespace DynamicDesk.UI
 {
     public class WallpaperHostForm : Form
     {

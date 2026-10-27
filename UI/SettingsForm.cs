@@ -2,12 +2,12 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using SmartWallpaperApp.Core;
-using SmartWallpaperApp.Models;
-using SmartWallpaperApp.Services;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Core;
+using DynamicDesk.Models;
+using DynamicDesk.Services;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.UI
+namespace DynamicDesk.UI
 {
     public class SettingsForm : Form
     {
@@ -76,7 +76,7 @@ namespace SmartWallpaperApp.UI
 
         private void InitializeCustomComponents()
         {
-            Text = "Smart Wallpaper - Settings & Control Panel";
+            Text = "Dynamic Desk - Settings & Control Panel";
             Size = new Size(760, 840);
             MinimumSize = new Size(700, 750);
             StartPosition = FormStartPosition.CenterScreen;
@@ -501,7 +501,7 @@ namespace SmartWallpaperApp.UI
             {
                 _powerMonitor.UpdateSettings(_settingsManager.CurrentSettings);
                 await _wallpaperManager.ForceApplyCurrentPowerModeAsync();
-                MessageBox.Show("Your wallpaper settings have been saved and applied.", "Smart Wallpaper", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Your wallpaper settings have been saved and applied.", "Dynamic Desk", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 Close();
             }
             else

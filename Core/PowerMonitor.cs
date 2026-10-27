@@ -1,9 +1,9 @@
 using System;
 using System.Windows.Forms;
-using SmartWallpaperApp.Models;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Models;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Core
+namespace DynamicDesk.Core
 {
     public class PowerStatusInfo
     {

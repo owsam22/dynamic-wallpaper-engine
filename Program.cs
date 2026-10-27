@@ -1,14 +1,14 @@
 using System;
 using System.Threading;
 using System.Windows.Forms;
-using SmartWallpaperApp.UI;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.UI;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp
+namespace DynamicDesk
 {
     internal static class Program
     {
-        private const string AppMutexName = @"Global\SmartWallpaperApp_SingleInstance_Mutex_99F";
+        private const string AppMutexName = @"Global\DynamicDesk_SingleInstance_Mutex_99F";
         private static Mutex? _appMutex;
 
         [STAThread]
@@ -32,10 +32,10 @@ namespace SmartWallpaperApp
             _appMutex = new Mutex(true, AppMutexName, out bool isNewInstance);
             if (!isNewInstance)
             {
-                Logger.Warn("Another instance of SmartWallpaperApp is already running. Exiting.");
+                Logger.Warn("Another instance of Dynamic Desk is already running. Exiting.");
                 MessageBox.Show(
-                    "Smart Wallpaper App is already running in the system tray.",
-                    "Smart Wallpaper",
+                    "Dynamic Desk is already running in the system tray.",
+                    "Dynamic Desk",
                     MessageBoxButtons.OK,
                     MessageBoxIcon.Information
                 );
@@ -44,10 +44,10 @@ namespace SmartWallpaperApp
 
             try
             {
-                Logger.Info("SmartWallpaperApp starting up...");
+                Logger.Info("Dynamic Desk starting up...");
                 ApplicationConfiguration.Initialize();
                 Application.Run(new MainForm());
-                Logger.Info("SmartWallpaperApp terminated normally.");
+                Logger.Info("Dynamic Desk terminated normally.");
             }
             catch (Exception ex)
             {

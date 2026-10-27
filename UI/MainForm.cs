@@ -2,12 +2,12 @@ using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
-using SmartWallpaperApp.Core;
-using SmartWallpaperApp.Models;
-using SmartWallpaperApp.Services;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Core;
+using DynamicDesk.Models;
+using DynamicDesk.Services;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.UI
+namespace DynamicDesk.UI
 {
     public class MainForm : Form
     {
@@ -80,7 +80,7 @@ namespace SmartWallpaperApp.UI
                 {
                     _trayIcon.ShowBalloonTip(
                         3500,
-                        "Smart Wallpaper App",
+                        "Dynamic Desk",
                         "Welcome! Please select your custom live and static wallpapers to get started.",
                         ToolTipIcon.Info
                     );
@@ -98,7 +98,7 @@ namespace SmartWallpaperApp.UI
         {
             _trayMenu = new ContextMenuStrip();
 
-            _menuStatusHeader = new ToolStripMenuItem("Smart Wallpaper - Starting...") { Enabled = false, Font = new Font("Segoe UI", 9f, FontStyle.Bold) };
+            _menuStatusHeader = new ToolStripMenuItem("Dynamic Desk - Starting...") { Enabled = false, Font = new Font("Segoe UI", 9f, FontStyle.Bold) };
             _trayMenu.Items.Add(_menuStatusHeader);
             _trayMenu.Items.Add(new ToolStripSeparator());
 
@@ -140,7 +140,7 @@ namespace SmartWallpaperApp.UI
 
             _trayIcon = new NotifyIcon
             {
-                Text = "Smart Wallpaper App",
+                Text = "Dynamic Desk",
                 Icon = CreateTrayIcon(),
                 ContextMenuStrip = _trayMenu,
                 Visible = true
@@ -167,12 +167,12 @@ namespace SmartWallpaperApp.UI
             if (!settings.HasLiveWallpaper && !settings.HasStaticWallpaper)
             {
                 header = $"⚠️ Setup: Select Wallpapers in Settings | {pwr}";
-                tooltip = $"Smart Wallpaper [Setup Needed]\nPlease select wallpapers in Settings\n{pwr}";
+                tooltip = $"Dynamic Desk [Setup Needed]\nPlease select wallpapers in Settings\n{pwr}";
             }
             else
             {
                 header = $"Mode: {mode} | {pwr}";
-                tooltip = $"Smart Wallpaper [{mode}]\n{pwr}";
+                tooltip = $"Dynamic Desk [{mode}]\n{pwr}";
             }
 
             _menuStatusHeader.Text = header;
@@ -265,7 +265,7 @@ namespace SmartWallpaperApp.UI
 
         private void ExitApplication()
         {
-            Logger.Info("Exiting SmartWallpaperApp...");
+            Logger.Info("Exiting Dynamic Desk...");
             _trayIcon.Visible = false;
             _trayIcon.Dispose();
             _powerMonitor.Dispose();

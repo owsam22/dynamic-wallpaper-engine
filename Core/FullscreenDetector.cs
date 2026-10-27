@@ -1,9 +1,9 @@
 using System;
 using System.Text;
 using System.Windows.Forms;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Core
+namespace DynamicDesk.Core
 {
     public class FullscreenDetector : IDisposable
     {

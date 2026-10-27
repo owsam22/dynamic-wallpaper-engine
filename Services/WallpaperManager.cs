@@ -2,11 +2,11 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Win32;
-using SmartWallpaperApp.Core;
-using SmartWallpaperApp.Models;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Core;
+using DynamicDesk.Models;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Services
+namespace DynamicDesk.Services
 {
     public enum WallpaperMode
     {

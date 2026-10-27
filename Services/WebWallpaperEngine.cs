@@ -3,11 +3,11 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Microsoft.Web.WebView2.Core;
-using SmartWallpaperApp.Core;
-using SmartWallpaperApp.UI;
-using SmartWallpaperApp.Utils;
+using DynamicDesk.Core;
+using DynamicDesk.UI;
+using DynamicDesk.Utils;
 
-namespace SmartWallpaperApp.Services
+namespace DynamicDesk.Services
 {
     public class WebWallpaperEngine : IDisposable
     {
@@ -25,7 +25,7 @@ namespace SmartWallpaperApp.Services
         public WebWallpaperEngine()
         {
             string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-            _userDataFolder = Path.Combine(localAppData, "SmartWallpaperApp", "WebView2Data");
+            _userDataFolder = Path.Combine(localAppData, "DynamicDesk", "WebView2Data");
         }
 
         public static bool IsWebView2RuntimeAvailable(out string versionOrError)

@@ -1,6 +1,6 @@
 using System;
 
-namespace SmartWallpaperApp.Models
+namespace DynamicDesk.Models
 {
     public class AppSettings
     {
