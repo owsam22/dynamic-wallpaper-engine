@@ -8,6 +8,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <AssemblyName>DynamicDesk</AssemblyName>
     <RootNamespace>DynamicDesk</RootNamespace>
+    <Product>DynamicDesk</Product>
+    <Company>owsam22</Company>
+    <Authors>samarpan jayswal</Authors>
+    <Description>Power-aware live wallpaper manager for Windows</Description>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>$(NoWarn);MSB3277</NoWarn>
   </PropertyGroup>
