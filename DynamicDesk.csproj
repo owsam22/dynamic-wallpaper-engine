@@ -12,6 +12,7 @@
     <Company>owsam22</Company>
     <Authors>samarpan jayswal</Authors>
     <Description>Power-aware live wallpaper manager for Windows</Description>
+    <ApplicationIcon>DynamicDesk.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <NoWarn>$(NoWarn);MSB3277</NoWarn>
   </PropertyGroup>
