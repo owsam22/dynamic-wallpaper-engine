@@ -1,5 +1,5 @@
 # DynamicDesk
-
+>⚡first make it exist , then make it perfect⚡
 <p align="center">
   <strong>A smarter wallpaper experience for Windows.</strong>
   <br />
