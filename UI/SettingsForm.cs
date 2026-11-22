@@ -76,7 +76,7 @@ namespace DynamicDesk.UI
 
         private void InitializeCustomComponents()
         {
-            Text = "Dynamic Desk - Settings & Control Panel";
+            Text = "Dynamic Desk - Control Panel & Settings";
             Size = new Size(760, 840);
             MinimumSize = new Size(700, 750);
             StartPosition = FormStartPosition.CenterScreen;
