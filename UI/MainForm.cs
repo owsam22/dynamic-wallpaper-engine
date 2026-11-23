@@ -26,6 +26,7 @@ namespace DynamicDesk.UI
 
         private SettingsForm? _openSettingsForm;
         private readonly uint _taskbarCreatedMsg;
+        private readonly uint _showMainWindowMsg;
 
         public MainForm()
         {
@@ -36,6 +37,7 @@ namespace DynamicDesk.UI
             Size = new Size(0, 0);
 
             _taskbarCreatedMsg = WinApiHelpers.RegisterWindowMessage("TaskbarCreated");
+            _showMainWindowMsg = WinApiHelpers.RegisterWindowMessage("DynamicDesk_ShowMainWindow");
 
             _settingsManager = new SettingsManager();
             _wallpaperManager = new WallpaperManager(_settingsManager);
@@ -98,11 +100,18 @@ namespace DynamicDesk.UI
         {
             _trayMenu = new ContextMenuStrip();
 
-            _menuStatusHeader = new ToolStripMenuItem("Dynamic Desk - Starting...") { Enabled = false, Font = new Font("Segoe UI", 9f, FontStyle.Bold) };
+            var menuHome = new ToolStripMenuItem("🏠 Open DynamicDesk", null, (_, _) => ShowSettings())
+            {
+                Font = new Font("Segoe UI", 9.5f, FontStyle.Bold)
+            };
+            _trayMenu.Items.Add(menuHome);
+            _trayMenu.Items.Add(new ToolStripSeparator());
+
+            _menuStatusHeader = new ToolStripMenuItem("DynamicDesk - Starting...") { Enabled = false, Font = new Font("Segoe UI", 8.5f) };
             _trayMenu.Items.Add(_menuStatusHeader);
             _trayMenu.Items.Add(new ToolStripSeparator());
 
-            var menuSettings = new ToolStripMenuItem("⚙️ Settings...", null, (_, _) => ShowSettings());
+            var menuSettings = new ToolStripMenuItem("⚙️ Settings & Options...", null, (_, _) => ShowSettings());
             _trayMenu.Items.Add(menuSettings);
 
             var menuApply = new ToolStripMenuItem("🔄 Reapply Current Mode", null, async (_, _) => await _wallpaperManager.ForceApplyCurrentPowerModeAsync());
@@ -226,6 +235,10 @@ namespace DynamicDesk.UI
             else if (m.Msg == _taskbarCreatedMsg && _taskbarCreatedMsg != 0)
             {
                 _wallpaperManager.HandleExplorerRestart();
+            }
+            else if (m.Msg == _showMainWindowMsg && _showMainWindowMsg != 0)
+            {
+                ShowSettings();
             }
 
             base.WndProc(ref m);
