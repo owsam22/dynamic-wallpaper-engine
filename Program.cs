@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Windows.Forms;
+using DynamicDesk.Core;
 using DynamicDesk.UI;
 using DynamicDesk.Utils;
 
@@ -32,13 +33,9 @@ namespace DynamicDesk
             _appMutex = new Mutex(true, AppMutexName, out bool isNewInstance);
             if (!isNewInstance)
             {
-                Logger.Warn("Another instance of Dynamic Desk is already running. Exiting.");
-                MessageBox.Show(
-                    "Dynamic Desk is already running in the system tray.",
-                    "Dynamic Desk",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Information
-                );
+                Logger.Warn("Another instance of Dynamic Desk is already running. Notifying existing instance to show window.");
+                uint showMsg = WinApiHelpers.RegisterWindowMessage("DynamicDesk_ShowMainWindow");
+                WinApiHelpers.PostMessage(WinApiHelpers.HWND_BROADCAST, showMsg, IntPtr.Zero, IntPtr.Zero);
                 return;
             }
 
