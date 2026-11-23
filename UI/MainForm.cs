@@ -30,7 +30,7 @@ namespace DynamicDesk.UI
 
         public MainForm()
         {
-            // Configure as hidden background window
+            // Configure as hidden background window!
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
