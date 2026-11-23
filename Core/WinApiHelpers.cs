@@ -46,6 +46,8 @@ namespace DynamicDesk.Core
         public const int SW_HIDE = 0;
         public const int SW_SHOW = 5;
 
+        public static readonly IntPtr HWND_BROADCAST = new IntPtr(0xffff);
+
         #endregion
 
         #region Native Methods
