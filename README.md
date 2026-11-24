@@ -1,17 +1,21 @@
-# DynamicDesk
->⚡first make it exist , then make it perfect ⚡
+# ⚡ DynamicDesk
+
+> *First make it exist, then make it perfect.* ⚡
+
 <p align="center">
   <strong>A smarter wallpaper experience for Windows.</strong>
   <br />
-  Switch between interactive live HTML wallpapers and static backgrounds based on your PC's power state.
+  Automatically switch between interactive live HTML wallpapers and static backgrounds based on your PC's power state.
   <br /><br />
   <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest">
-    <img src="https://img.shields.io/github/v/release/owsam22/dynamic-wallpaper-engine?style=for-the-badge&label=Latest%20Release" alt="Latest Release" />
+    <img src="https://img.shields.io/github/v/release/owsam22/dynamic-wallpaper-engine?style=for-the-badge&label=Latest%20Release&color=0ea5e9" alt="Latest Release" />
   </a>
-  </p>
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine">
+  </a>
+ </p>
 
 <p align="center">
-  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest"><strong>Download for Windows</strong></a>
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest"><strong>Download DynamicDesk</strong></a>
   &nbsp; · &nbsp;
   <a href="https://github.com/owsam22/dynamic-wallpaper-engine/issues">Report a Bug</a>
   &nbsp; · &nbsp;
@@ -20,30 +24,76 @@
 
 ---
 
-## Overview
+## 🚀 What's New in v1.1.0?
 
-**DynamicDesk** is a Windows desktop application designed to make your desktop more dynamic while adapting to your computer's power state.
+DynamicDesk has received a major user interface redesign!
 
-Enjoy interactive HTML wallpapers when connected to AC power and switch to static wallpapers when running on battery.
+This update focuses on making the application easier to use, navigate, and configure.
 
-Built with C#, .NET, Windows Forms, and Microsoft Edge WebView2, DynamicDesk combines web-based wallpaper experiences with native Windows integration.
+- **Completely redesigned interface** — a refreshed, modern, and more user-friendly experience.
+- **Improved navigation** — easier access to application settings and features.
+- **Better usability** — clearer layouts and simplified controls.
+- **Visual refinements** — improved spacing, styling, and interface consistency.
 
-## Features
+**Current Version:** `v1.1.0`
 
-- **Power-aware wallpaper switching** — switch wallpaper modes according to AC power and battery status.
-- **Interactive HTML wallpapers** — display web-based wallpapers with interactive content.
-- **Static wallpapers** — use image-based backgrounds for battery mode.
-- **Wallpaper interaction** — interact with supported live wallpaper content.
-- **System tray integration** — access the application from the Windows notification area.
-- **Settings interface** — configure the application's available options.
-- **Native Windows application** — built with C# and Windows Forms.
-- **WebView2 rendering** — use Microsoft Edge WebView2 for HTML wallpaper content.
- 
- >note : live url wallpaper need internet connection to display. and the wallpaper will be display only when the application is running. when the application is closed, the wallpaper will be closed too.
- 
-## Download and Install
+For previous changes, visit the [GitHub Releases](https://github.com/owsam22/dynamic-wallpaper-engine/releases) page.
 
-Get the latest Windows build directly from GitHub Releases.
+---
+
+## 📖 Overview
+
+**DynamicDesk** is a Windows desktop application that makes your desktop more dynamic while adapting to your computer's power state.
+
+Enjoy interactive HTML wallpapers when your PC is connected to AC power and automatically switch to static backgrounds when running on battery.
+
+Instead of manually changing wallpapers every time you unplug your laptop, DynamicDesk handles the transition for you.
+
+Built using C#, .NET, Windows Forms, and Microsoft Edge WebView2, DynamicDesk combines web-based wallpaper experiences with native Windows integration.
+
+## ✨ Features
+
+| Feature | Description |
+|---|---|
+| ⚡ Power-aware switching | Automatically switches wallpaper modes based on AC power and battery status. |
+| 🌐 Live HTML wallpapers | Display interactive, web-based wallpaper content. |
+| 🖼️ Static wallpapers | Use image-based backgrounds when running on battery. |
+| 🖱️ Wallpaper interaction | Interact with supported live wallpaper content. |
+| 🎨 Modern interface | Configure and manage the application through its redesigned UI. |
+| 📌 System tray integration | Access DynamicDesk from the Windows notification area. |
+| 🔋 Power monitoring | Detect changes between AC and battery power. |
+| 🧪 Simulation mode | Test power-state behavior without physically changing your power source. |
+| ⏯️ Automation controls | Pause, resume, and manually reapply wallpaper modes. |
+| 🖥️ Fullscreen detection | Includes fullscreen-aware wallpaper behavior. |
+| 📝 Logging | Access application logs for troubleshooting. |
+
+## 💡 How Does It Work?
+
+DynamicDesk monitors your computer's power source and selects the appropriate wallpaper mode.
+
+<p align="center">
+  <strong>Connected to AC Power</strong>
+  <br />
+  ⚡ Live HTML Wallpaper
+  <br /><br />
+  ⬇️
+  <br /><br />
+  <strong>Running on Battery</strong>
+  <br />
+  🔋 Static Wallpaper
+</p>
+
+The goal is simple: enjoy interactive desktop experiences when plugged in while using a static background when you need to conserve battery.
+
+**Important notes:**
+- URL-based live wallpapers require an internet connection.
+- Local HTML wallpapers can use their available local assets.
+- Wallpapers are displayed only while DynamicDesk is running.
+- Closing DynamicDesk stops its wallpaper functionality.
+
+## 📥 Download and Installation
+
+Get the latest version from the official GitHub Releases page.
 
 <p align="center">
   <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest">
@@ -51,182 +101,166 @@ Get the latest Windows build directly from GitHub Releases.
   </a>
 </p>
 
-### Installation steps
+### Installation Steps
 
-1. Open the [**Latest DynamicDesk Release**](https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest).
+1. Visit the [Latest DynamicDesk Release](https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest).
 2. Scroll down to the **Assets** section.
-3. Download `DynamicDesk-windows-x64.zip` (or the ZIP filename shown in the release).
+3. Download `DynamicDesk-windows-x64.zip` or the ZIP filename provided in the release.
 4. Right-click the downloaded ZIP and select **Extract All**.
 5. Open the extracted folder.
-6. Run `DynamicDesk.exe`.
-7. If prompted or required, install the [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
+6. Double-click `DynamicDesk.exe`.
+7. Configure your wallpapers using the application interface.
 
-**Important:** Extract the complete ZIP before running the application. Do not move only the executable out of the folder unless the release explicitly provides a tested standalone executable.
+If required, install the [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/en-us/microsoft-edge/webview2/).
+
+> **Important:** Extract the complete ZIP before running the application. Do not move only the executable out of the extracted folder unless the release explicitly provides a tested standalone executable.
 
 You do not need Visual Studio to run a correctly packaged release.
 
-## How to Use
+## 🛠️ How to Use
 
 ### 1. Launch DynamicDesk
 
-Open the extracted application folder and double-click `DynamicDesk.exe`.
+Open the extracted application folder and run `DynamicDesk.exe`.
 
-### 2. Open the settings
+### 2. Access the Application
 
-If DynamicDesk starts in the system tray, find its icon in the Windows notification area. Open the tray menu or double-click the icon to access the settings interface, depending on the available controls.
+DynamicDesk runs in the background and provides access through the Windows system tray.
 
-### 3. Configure your wallpapers
+Find the DynamicDesk icon near the Windows clock and use its available controls to access the application.
 
-Choose the supported live HTML wallpaper and static wallpaper options using the application's settings.
+### 3. Configure Your Wallpapers
 
-- **Live wallpaper:** select the HTML wallpaper content you want to display.
-- **Static wallpaper:** select an image for the static wallpaper mode.
-- **Power behavior:** configure the available options for AC power and battery operation.
+Use the settings interface to configure your wallpaper preferences.
 
-The exact settings and supported file formats depend on the installed version.
+- **Live wallpaper:** Choose your supported HTML wallpaper or URL.
+- **Static wallpaper:** Select an image to use in static mode.
+- **Power behavior:** Configure the available AC and battery options.
 
-### 4. Connect or disconnect power
+### 4. Let DynamicDesk Handle the Switching
 
-With power-aware switching enabled, DynamicDesk is designed to use the live wallpaper while connected to AC power and the static wallpaper when running on battery.
+Once configured, DynamicDesk monitors your power source and automatically switches between the selected wallpaper modes.
 
-### 5. Use interactive wallpapers
+### 5. Explore Live Wallpapers
 
-When a live HTML wallpaper supports interaction, use your mouse to interact with its content. The exact interaction behavior depends on the wallpaper and the application's current implementation.
+Try the example wallpaper created for DynamicDesk:
 
 <p align="center">
-  <a href="https://owsam22.github.io/pixel-engineer-live-wallpaper/" target="_blank">
-    <strong>Open Pixel Engineer Live Wallpaper ↗</strong>
+  <a href="https://owsam22.github.io/pixel-engineer-live-wallpaper/">
+    <strong>⚡ Open Pixel Engineer Live Wallpaper ↗</strong>
+  </a>
+  <br /><br />
+  <a href="https://owsam22.github.io/pixel-engineer-live-wallpaper/">
+    https://owsam22.github.io/pixel-engineer-live-wallpaper/
   </a>
 </p>
 
-<p align="center">
-  <code>https://owsam22.github.io/pixel-engineer-live-wallpaper/</code>
-</p>
+This is an example of the kind of web-based wallpaper experience DynamicDesk can display.
 
-## System Requirements
+## 💻 System Requirements
 
-- A compatible 64-bit Windows system.
+- Compatible 64-bit Windows system.
 - Microsoft Edge WebView2 Runtime for HTML wallpaper rendering.
-- The .NET runtime is included if the release is published as a self-contained build.
-- A compatible HTML wallpaper and image file for the wallpaper modes you want to use.
+- .NET runtime is included when using the self-contained release.
+- Internet connection for URL-based wallpapers.
+- A supported image or HTML wallpaper.
 
-Refer to the release notes for version-specific requirements.
+Refer to the individual release notes for version-specific requirements.
 
-## Built With
+## 🧰 Built With
 
 | Technology | Purpose |
 |---|---|
 | C# | Application logic |
 | .NET | Application framework |
-| Windows Forms | Desktop interface |
+| Windows Forms | Desktop application interface |
 | Microsoft Edge WebView2 | HTML wallpaper rendering |
-| Windows APIs | Power-state monitoring and Windows integration |
+| Windows APIs | Power monitoring and Windows integration |
 
-## Run from Source
+## 🔄 Updates
 
-Developers can build and run DynamicDesk locally.
-
-### Prerequisites
-
-- Git
-- A .NET SDK compatible with the project's target framework
-- Windows development environment
-- Microsoft Edge WebView2 Runtime
-
-### Clone the repository
-
-```bash
-git clone https://github.com/owsam22/dynamic-wallpaper-engine.git
-cd dynamic-wallpaper-engine
-```
-
-### Restore dependencies
-
-```bash
-dotnet restore
-```
-
-### Build the application
-
-```bash
-dotnet build -c Release
-```
-
-### Run the application
-
-```bash
-dotnet run
-```
-
-Run these commands from the directory containing `DynamicDesk.csproj`. The installed .NET SDK must support the target framework specified in the project file.
-
-## Updates
-
-To get a newer version:
+To update DynamicDesk:
 
 1. Visit the [GitHub Releases page](https://github.com/owsam22/dynamic-wallpaper-engine/releases).
-2. Download the latest release ZIP.
-3. Extract it into a new folder.
-4. Run the new version.
+2. Download the latest release.
+3. Extract the new version into a separate folder.
+4. Run the updated executable.
 
 Keep your personal wallpaper files and any settings you want to preserve before replacing an older version.
 
-## Troubleshooting
+Always check the release notes for changes and version-specific instructions.
 
-**The application does not start**
-- Extract the entire ZIP before running the executable.
-- Check that your Windows version is supported.
-- Review any error message and verify that you downloaded the correct release.
+## 🛠️ Troubleshooting
 
-**HTML wallpapers do not render**
+### Application does not start
+
+- Extract the complete ZIP before running the executable.
+- Verify that you downloaded the correct Windows x64 release.
+- Check whether Windows has blocked the downloaded file.
+- Review any error messages and application logs.
+
+### Live wallpapers do not render
+
 - Install or repair the Microsoft Edge WebView2 Runtime.
-- Verify that the HTML wallpaper and its required assets are available.
+- Check your internet connection for URL-based wallpapers.
+- Verify that the HTML wallpaper and its required assets are accessible.
 
-**Wallpaper switching does not work**
+### Wallpaper switching does not work
+
 - Check the available power-state settings.
+- Verify that automation is enabled.
 - Test while connected to AC power and while running on battery.
-- Report the issue with your Windows version and steps to reproduce it.
+- Use the simulation mode to help diagnose switching behavior.
 
-**Windows displays a security warning**
-- Verify that the download came from the official repository's Releases page.
-- Review the release and its source before deciding whether to run it.
+### Windows displays a security warning
 
-## Report Issues and Contribute
+- Verify that the installer or archive came from the official GitHub repository.
+- Review the release and its source code before deciding whether to run it.
 
-Found a bug or have an idea for an improvement?
+## 🐛 Report Issues and Contribute
+
+Found a bug or have an idea for improvement?
 
 - [Report a bug](https://github.com/owsam22/dynamic-wallpaper-engine/issues/new)
 - [Browse existing issues](https://github.com/owsam22/dynamic-wallpaper-engine/issues)
 - [View all releases](https://github.com/owsam22/dynamic-wallpaper-engine/releases)
 - [Explore the source code](https://github.com/owsam22/dynamic-wallpaper-engine)
 
-When reporting a bug, include your Windows version, the application version, steps to reproduce the issue, and relevant error messages.
+When reporting a bug, please include:
 
-Contributions and constructive feedback are welcome.
+- Windows version.
+- DynamicDesk version.
+- Steps to reproduce the issue.
+- Relevant error messages or logs.
 
-## About the Developer
+Contributions, suggestions, and constructive feedback are welcome.
 
-DynamicDesk is developed by **Samarpan Jayswal (owsam22)**.
+## 👨‍💻 About the Developer
 
-- **Portfolio:** [portfolio.owsam22.com](https://portfolio.owsam22.com/)
-- **Website:** [owsam22.com](https://owsam22.com/)
-- **GitHub:** [github.com/owsam22](https://github.com/owsam22)
-- **Contact:** [contact@owsam22.com](mailto:contact@owsam22.com)
+DynamicDesk is independently developed by **Samarpan Jayswal (owsam22)**.
 
-For questions, feedback, collaboration, or project-related inquiries, feel free to get in touch.
+<p align="center">
+  <strong>Built with curiosity, code, and a desire to make everyday desktop experiences better.</strong>
+  <br /><br />
+  <a href="https://portfolio.owsam22.com/">Portfolio</a>
+  &nbsp; · &nbsp;
+  <a href="https://owsam22.com/">Website</a>
+  &nbsp; · &nbsp;
+  <a href="https://github.com/owsam22">GitHub</a>
+  &nbsp; · &nbsp;
+  <a href="mailto:contact@owsam22.com">Contact</a>
+</p>
 
 ---
 
 <p align="center">
-  <strong>DynamicDesk</strong>
+  <strong>⚡ DynamicDesk</strong>
   <br />
-  Built by <a href="https://github.com/owsam22">owsam22</a>
+  Make your desktop adapt to the way you use your PC.
   <br /><br />
-  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest">Download</a>
+  <a href="https://github.com/owsam22/dynamic-wallpaper-engine/releases/latest">Download Latest Version</a>
   &nbsp; · &nbsp;
-  <a href="https://portfolio.owsam22.com/">Portfolio</a>
-  &nbsp; · &nbsp;
-  <a href="https://owsam22.com/">Website</a>
+  <a href="https://portfolio.owsam22.com/">Developer Portfolio</a>
   <br /><br />
-  <sub>Make your desktop adapt to the way you use your PC.</sub>
+  <sub>Developed by <a href="https://github.com/owsam22">owsam22</a> · Current Version v1.1.0</sub>
 </p>
