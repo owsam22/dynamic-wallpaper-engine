@@ -11,6 +11,9 @@ namespace DynamicDesk.UI
 {
     public class MainForm : Form
     {
+        private readonly bool _startMinimized;
+        private bool _hasShownMinimizeNotice;
+
         private readonly SettingsManager _settingsManager;
         private readonly WallpaperManager _wallpaperManager;
         private readonly PowerMonitor _powerMonitor;
@@ -28,9 +31,15 @@ namespace DynamicDesk.UI
         private readonly uint _taskbarCreatedMsg;
         private readonly uint _showMainWindowMsg;
 
-        public MainForm()
+        public MainForm(string[]? args = null)
         {
-            // Configure as hidden background window!
+            _startMinimized = args != null && Array.Exists(args, a =>
+                a.Equals("--startup", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("-startup", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("--minimized", StringComparison.OrdinalIgnoreCase) ||
+                a.Equals("-minimized", StringComparison.OrdinalIgnoreCase));
+
+            // Configure as hidden background window
             FormBorderStyle = FormBorderStyle.None;
             ShowInTaskbar = false;
             WindowState = FormWindowState.Minimized;
@@ -68,31 +77,96 @@ namespace DynamicDesk.UI
         private async void OnMainFormLoaded(object? sender, EventArgs e)
         {
             Hide();
-            Logger.Info("MainForm loaded. Initializing services and detecting power state...");
+
+            Logger.Info($"MainForm loaded. Initializing services (StartMinimized: {_startMinimized})...");
 
             _fullscreenDetector.Start();
             _powerMonitor.Start();
 
             var settings = _settingsManager.CurrentSettings;
-            if (!settings.HasLiveWallpaper && !settings.HasStaticWallpaper)
+            bool needsSetup = !settings.HasLiveWallpaper && !settings.HasStaticWallpaper;
+
+            // When user opens the app manually or when setup is needed, present the main window
+            if (!_startMinimized || needsSetup)
             {
-                Logger.Info("No wallpapers configured on startup. Presenting Settings window to user.");
+                Logger.Info("Opening DynamicDesk main window for user.");
                 ShowSettings();
-                try
-                {
-                    _trayIcon.ShowBalloonTip(
-                        3500,
-                        "Dynamic Desk",
-                        "Welcome! Please select your custom live and static wallpapers to get started.",
-                        ToolTipIcon.Info
-                    );
-                }
-                catch { }
             }
-            else
+
+            // Perform initial power mode transition
+            await _wallpaperManager.HandlePowerChangeAsync(
+                _powerMonitor.CurrentStatus,
+                force: true
+            );
+
+            // Show first launch welcome notification and tray balloon
+            ShowFirstLaunchWelcome(needsSetup, isManualLaunch: !_startMinimized);
+        }
+
+        private void ShowFirstLaunchWelcome(bool needsSetup, bool isManualLaunch)
+        {
+            string appDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "DynamicDesk"
+            );
+
+            string userAppDataPath = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "owsam22",
+                "DynamicDesk"
+            );
+
+            string marker1 = Path.Combine(appDataPath, "first-launch-complete");
+            string marker2 = Path.Combine(userAppDataPath, "first-launch-complete");
+
+            if (File.Exists(marker1) || File.Exists(marker2))
+                return;
+
+            try
             {
-                // Perform initial mode transition
-                await _wallpaperManager.HandlePowerChangeAsync(_powerMonitor.CurrentStatus, force: true);
+                Directory.CreateDirectory(appDataPath);
+                File.WriteAllText(marker1, DateTime.UtcNow.ToString("O"));
+
+                Directory.CreateDirectory(userAppDataPath);
+                File.WriteAllText(marker2, DateTime.UtcNow.ToString("O"));
+            }
+            catch (Exception ex)
+            {
+                Logger.Error($"Could not save first-launch marker: {ex.Message}");
+            }
+
+            // Show Windows notification from the system tray pointing to the icon
+            try
+            {
+                _trayIcon.ShowBalloonTip(
+                    5000,
+                    "DynamicDesk is Running",
+                    "DynamicDesk is now active in your system tray near the clock. Double-click the tray icon anytime to open settings.",
+                    ToolTipIcon.Info
+                );
+            }
+            catch { }
+
+            // If user launched manually on first run, show the friendly welcome message box
+            if (isManualLaunch)
+            {
+                string msg = needsSetup
+                    ? "Welcome to DynamicDesk!\n\n" +
+                      "DynamicDesk is now running in the background.\n\n" +
+                      "The setup window is open. Please choose your custom Live and Static wallpapers to get started.\n\n" +
+                      "You can access DynamicDesk anytime from its system tray icon near your Windows clock."
+                    : "Welcome to DynamicDesk!\n\n" +
+                      "DynamicDesk is running in the background and automatically switches between " +
+                      "live and static wallpapers depending on your power source.\n\n" +
+                      "You can access DynamicDesk anytime from its system tray icon near your Windows clock.";
+
+                MessageBox.Show(
+                    (IWin32Window?)_openSettingsForm ?? this,
+                    msg,
+                    "Welcome to DynamicDesk",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
             }
         }
 
@@ -216,14 +290,35 @@ namespace DynamicDesk.UI
             if (_openSettingsForm == null || _openSettingsForm.IsDisposed)
             {
                 _openSettingsForm = new SettingsForm(_settingsManager, _wallpaperManager, _powerMonitor);
+                _openSettingsForm.FormClosed += (_, _) => ShowTrayMinimizedNotice();
                 _openSettingsForm.Show();
             }
             else
             {
-                _openSettingsForm.WindowState = FormWindowState.Normal;
+                if (_openSettingsForm.WindowState == FormWindowState.Minimized)
+                {
+                    _openSettingsForm.WindowState = FormWindowState.Normal;
+                }
                 _openSettingsForm.BringToFront();
                 _openSettingsForm.Activate();
             }
+        }
+
+        private void ShowTrayMinimizedNotice()
+        {
+            if (_hasShownMinimizeNotice) return;
+            _hasShownMinimizeNotice = true;
+
+            try
+            {
+                _trayIcon.ShowBalloonTip(
+                    4000,
+                    "DynamicDesk Minimized",
+                    "DynamicDesk is still active in your system tray near the clock. Double-click the tray icon anytime to reopen.",
+                    ToolTipIcon.Info
+                );
+            }
+            catch { }
         }
 
         protected override void WndProc(ref Message m)
