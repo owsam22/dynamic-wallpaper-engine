@@ -131,8 +131,8 @@ namespace DynamicDesk.Services
                     string exePath = Environment.ProcessPath ?? "";
                     if (!string.IsNullOrEmpty(exePath))
                     {
-                        key.SetValue(AppRegistryName, $"\"{exePath}\"");
-                        Logger.Info($"Registered startup entry: {exePath}");
+                        key.SetValue(AppRegistryName, $"\"{exePath}\" --startup");
+                        Logger.Info($"Registered startup entry: {exePath} --startup");
                     }
                 }
                 else
