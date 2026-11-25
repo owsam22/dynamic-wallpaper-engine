@@ -13,7 +13,7 @@ namespace DynamicDesk
         private static Mutex? _appMutex;
 
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
             // Global Exception Handlers
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
@@ -41,9 +41,9 @@ namespace DynamicDesk
 
             try
             {
-                Logger.Info("Dynamic Desk starting up...");
+                Logger.Info($"Dynamic Desk starting up... (Args: {string.Join(" ", args)})");
                 ApplicationConfiguration.Initialize();
-                Application.Run(new MainForm());
+                Application.Run(new MainForm(args));
                 Logger.Info("Dynamic Desk terminated normally.");
             }
             catch (Exception ex)
