@@ -1213,7 +1213,7 @@ namespace DynamicDesk.UI
             _lblBottomStatus = new Label
             {
                 Dock = DockStyle.Left,
-                Text = "🟢 Running in background • Accessible anytime from your system tray near the clock",
+                Text = "🟢 Running in background • Accessible anytime from your system tray ^ ",
                 Font = new Font("Segoe UI", 9f),
                 ForeColor = Color.FromArgb(51, 65, 85),
                 TextAlign = ContentAlignment.MiddleLeft,
