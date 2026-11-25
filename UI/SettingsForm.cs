@@ -354,7 +354,7 @@ namespace DynamicDesk.UI
 
             var lbl = new Label
             {
-                Text = "👋 Welcome! Choose your Live Wallpaper (for AC power) and Static Wallpaper (for Battery) below to get started.",
+                Text = "👋 Welcome to DynamicDesk!\nChoose your Live Wallpaper (for AC power) and Static Wallpaper (for Battery) below to get started.\n📌 DynamicDesk runs in the background in your system tray near the clock.",
                 Font = new Font("Segoe UI", 9.5f, FontStyle.Bold),
                 ForeColor = Color.FromArgb(12, 74, 162),
                 AutoSize = true,
@@ -1213,9 +1213,9 @@ namespace DynamicDesk.UI
             _lblBottomStatus = new Label
             {
                 Dock = DockStyle.Left,
-                Text = "Ready",
+                Text = "🟢 Running in background • Accessible anytime from your system tray near the clock",
                 Font = new Font("Segoe UI", 9f),
-                ForeColor = Color.FromArgb(100, 116, 139),
+                ForeColor = Color.FromArgb(51, 65, 85),
                 TextAlign = ContentAlignment.MiddleLeft,
                 AutoSize = true
             };
@@ -1243,9 +1243,9 @@ namespace DynamicDesk.UI
 
             _btnCancel = new Button
             {
-                Text = "Close",
+                Text = "Close to Tray",
                 Height = 36,
-                Width = 90,
+                Width = 110,
                 FlatStyle = FlatStyle.Flat,
                 BackColor = Color.FromArgb(241, 245, 249),
                 ForeColor = Color.FromArgb(51, 65, 85),
